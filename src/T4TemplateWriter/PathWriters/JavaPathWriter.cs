@@ -8,6 +8,7 @@ using Vipr.T4TemplateWriter.Settings;
 using Vipr.T4TemplateWriter.TemplateProcessor;
 using Vipr.T4TemplateWriter;
 using Vipr.Core.CodeModel;
+using Vipr.T4TemplateWriter.CodeHelpers;
 
 namespace Vipr.T4TemplateWriter.Output
 {

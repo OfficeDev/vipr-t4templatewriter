@@ -6,5 +6,5 @@
     "NamespacePrefix": "MS",
     "InitializeCollections": "false",
     "AllowShortActions": "false",
-    "NamespaceOverride": "com.microsoft.onenote.services"
+    "NamespaceOverride": "com.microsoft.services.outlook"
 }

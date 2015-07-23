@@ -1,0 +1,145 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ output extension="\\" #>
+
+<#
+CustomT4Host host       = (CustomT4Host) Host;
+OdcmModel model         = host.CurrentModel;
+CodeWriterJava writer   = (CodeWriterJava) host.CodeWriter;
+
+Node modelGraph = writer.GetModelGraph(model);
+#>
+
+<#=writer.WriteHeader()#>
+
+package com.microsoft.office365.test.integration.tests;
+
+import <#=model.NamespaceName()#>.*;
+import <#=model.NamespaceName()#>.fetchers.*;
+import com.microsoft.office365.test.integration.ApplicationContext;
+import com.microsoft.office365.test.integration.framework.*;
+
+import java.util.List;
+
+/**
+ * The type <#=model.GetEntityContainer()#>ClientTests.
+ */
+public class <#=model.GetEntityContainer().ToUpperFirstChar()#>ClientTests extends TestGroup {
+
+<#
+    var testsList = new Dictionary<String, String>();
+    //Get full method call for a property
+    Func<Node, String> GetFullMethodCall = null;
+    GetFullMethodCall = delegate(Node prop){
+        var strMethod = "";
+        if (prop != null && prop.Property != null)
+        {
+            strMethod = GetFullMethodCall(prop.Parent);
+            if (prop.Property.IsCollection)
+            {     
+            
+            #>
+                
+            List<<#=prop.Property.Type.GetTypeString()#>> _list<#=prop.Property.Name.ToLowerFirstChar()#> = client<#=strMethod + ".get" + prop.Property.Name + "()" #>.read().get();
+            <#=prop.Property.Type.GetTypeString()#> _<#=prop.Property.Name.Singularize().ToLowerFirstChar()#> = _list<#=prop.Property.Name.ToLowerFirstChar()#> == null? null : _list<#=prop.Property.Name.ToLowerFirstChar()#>.get(0);
+
+            <#   
+                strMethod += ".get" + prop.Property.Name + "().getById(_" + prop.Property.Name.Singularize().ToLowerFirstChar() +".getId())";
+            }
+            else
+            {
+                strMethod += ".get" +  prop.Property.Name + "()";
+            }
+        }
+            
+        return strMethod;
+    };
+
+    // Build the test name recursively
+    Func<Node, String> GetTestName = null;
+    GetTestName = delegate(Node prop){
+        var testName = "";
+            if (prop != null && prop.Property != null)
+            {
+                var propName = prop.Property.IsCollection ? prop.Property.Name : prop.Property.Name.Singularize();
+                testName += GetTestName(prop.Parent) + propName;
+            }
+
+        return testName;
+    };
+
+    //Generate GET test for given property
+    Action<Node> AutoGenerateGet = null;
+    AutoGenerateGet = delegate(Node prop)
+    {
+        var testName = GetTestName(prop);
+        testsList.Add(testName, "Can get " + testName);
+#>
+      private TestCase canGet<#=testName#>(String name, boolean enabled) {
+        TestCase test = new TestCase() {
+
+            @Override
+            public TestResult executeTest() {
+                try {
+                    TestResult result = new TestResult();
+                    result.setStatus(TestStatus.Failed);
+                    result.setTestCase(this);
+
+                    <#=model.GetEntityContainer().ToUpperFirstChar()#>Client client = ApplicationContext.get<#=model.GetEntityContainer().ToUpperFirstChar()#>Client();
+   
+<#
+        var strMethod = GetFullMethodCall(prop.Parent);
+        
+        if(prop.Property.IsCollection()){
+#>
+                    List<<#=prop.Property.Type.GetTypeString()#>> _<#=prop.Property.Name.ToLowerFirstChar().ToLowerFirstChar()#> = client<#=strMethod + ".get" + prop.Property.Name#>().read().get();
+<#
+}else{
+#>
+                    <#=prop.Property.Type.GetTypeString()#> _<#=prop.Property.Name.ToLowerFirstChar()#> = client<#=strMethod+ ".get" + prop.Property.Name#>().read().get();
+<#
+}
+#>
+                        
+                        if (_<#=prop.Property.Name.ToLowerFirstChar()#> != null)
+                        result.setStatus(TestStatus.Passed);
+
+                    return result;
+                } catch (Exception e) {
+                    return createResultFromException(e);
+                }
+            }
+        };
+
+        test.setName(name);
+        test.setEnabled(enabled);
+        return test;
+    }
+<#
+    };
+
+
+    // Generate tests for property
+    Action<Node> myRecursive = null;
+    myRecursive = delegate(Node n){
+        foreach (var property in n.ChildProperties)
+        {
+            AutoGenerateGet(property);
+            myRecursive(property);
+        }
+    };
+
+    //Starting point
+    myRecursive(modelGraph);
+#>
+
+     public <#=model.GetEntityContainer().ToUpperFirstChar()#>ClientTests() {
+        super("<#=model.GetEntityContainer().ToUpperFirstChar()#> Tests");
+<#
+    foreach(var test in testsList.Keys){
+#>
+        this.addTest(canGet<#=test#>("<#=testsList[test]#>", true));
+<#
+    }
+#>
+    }
+}

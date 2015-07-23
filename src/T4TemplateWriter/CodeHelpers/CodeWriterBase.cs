@@ -58,5 +58,18 @@ root for authoritative license information.﻿";
                 WriteClosingCommentLine()
               });
         }
+
+        public Node GetModelGraph(OdcmModel model)
+        {
+            Node n = new Node(null, null);
+            foreach (var odcmProperty in model.EntityContainer.Properties)
+            {
+                n.ChildProperties.Add(new Node(n, odcmProperty));
+            }
+
+            n.GenerateGraph();
+
+            return n;
+        }
     }
 }
