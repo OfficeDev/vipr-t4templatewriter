@@ -49,6 +49,7 @@
   <ItemGroup>
     <Compile Include="CodeHelpers\CodeWriterBase.cs" />
     <Compile Include="CodeHelpers\Java\CodeWriterJava.cs" />
+    <Compile Include="CodeHelpers\Java\SubElementDefinition.cs" />
     <Compile Include="CodeHelpers\Node.cs" />
     <Compile Include="CodeHelpers\ObjC\CodeWriterObjC.cs" />
     <Compile Include="TemplateProcessor\CustomT4Host.cs" />

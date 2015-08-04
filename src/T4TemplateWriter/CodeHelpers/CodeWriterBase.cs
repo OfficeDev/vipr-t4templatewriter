@@ -71,5 +71,17 @@ root for authoritative license information.﻿";
 
             return n;
         }
+
+        public String GetTestName(Node prop)
+        {
+            var testName = "";
+            if (prop != null && prop.Property != null)
+            {
+                var propName = prop.Property.IsCollection ? prop.Property.Name : prop.Property.Name.Singularize();
+                testName += GetTestName(prop.Parent) + propName;
+            }
+
+            return testName;
+        }
     }
 }
