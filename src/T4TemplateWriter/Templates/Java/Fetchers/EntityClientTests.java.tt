@@ -144,7 +144,7 @@ public class <#=model.GetEntityContainer().ToUpperFirstChar()#>ClientTests exten
             var strMethod = GetFullMethodCall(prop.Parent);
 
 #>
-                    <#=prop.Property.Type.GetTypeString()#> _created<#=prop.Property.Name.Singularize().ToLowerFirstChar()#> = client<#=strMethod + ".get" + prop.Property.Name#>().add(sample<#=prop.Property.Name.Singularize()#>).get();
+                    <#=prop.Property.Type.GetTypeString()#> _created<#=prop.Property.Name.Singularize().ToLowerFirstChar()#> = client<#=strMethod + ".get" + prop.Property.Name#>().add(sample<#=prop.Property.Type.GetTypeString()#>).get();
                     
                     if (_created<#=prop.Property.Name.Singularize().ToLowerFirstChar()#> != null)
                         result.setStatus(TestStatus.Passed);
@@ -185,11 +185,12 @@ public class <#=model.GetEntityContainer().ToUpperFirstChar()#>ClientTests exten
         super("<#=model.GetEntityContainer().ToUpperFirstChar()#> Tests");
     }
 
-    public <#=model.GetEntityContainer().ToUpperFirstChar()#>ClientTests(<#=model.GetEntityContainer().ToUpperFirstChar()#>Client client, List<PropertyFilter> filters, List<String> notSupportedTests ){
+    public <#=model.GetEntityContainer().ToUpperFirstChar()#>ClientTests(List<PropertyFilter> filters, List<String> notSupportedTests ){
         this();
         mFiller = new ObjectFiller();
         mNotSupportedTests = notSupportedTests;
-        SetSubelementsForContainer();
+        setSubelementsForContainer();
+
         for (PropertyFilter pf : filters) {
             mFiller.addPropertyFilter(pf);
         }
@@ -220,23 +221,22 @@ public class <#=model.GetEntityContainer().ToUpperFirstChar()#>ClientTests exten
             typeString = sampleEntities[property].Property.Type.GetTypeString();
         }
 #>
-        private <#=typeString#> getSample<#=sampleEntities[property].Property.Type.GetTypeString()#>(){
-            <#=typeString#> sample<#=typeString#> = new <#=typeString#>();
+    private <#=typeString#> getSample<#=sampleEntities[property].Property.Type.GetTypeString()#>() throws InstantiationException, IllegalAccessException{
+        <#=typeString#> sample<#=typeString#> = new <#=typeString#>();
 
-            try {
-                mFiller.fill(sample<#=typeString#>);
-            } catch (Throwable t) {
-                System.err.println("Error: " + t.toString());
-                t.printStackTrace();
-            }
-                return sample<#=typeString#>;
-            }
-<#    
+        mFiller.fill(sample<#=typeString#>);
+        if(sample<#=typeString#> == null) {
+            throw new IllegalArgumentException("Couldn't fill sample <#=typeString#> with default values");
+        }
+
+        return sample<#=typeString#>;
     }
 
+<#    
+    }
     //Set subelements to autogenerate lists of complex types
 #>
-    private void SetSubelementsForContainer(){
+    private void setSubelementsForContainer(){
 <#
     foreach(var subElement in subElements){
 #>

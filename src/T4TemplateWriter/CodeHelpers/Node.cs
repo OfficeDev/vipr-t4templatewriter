@@ -44,13 +44,34 @@ namespace Vipr.T4TemplateWriter.CodeHelpers
                             var childProp = clazz.Properties.WhereIsNavigation().ToList();
                             foreach (var odcmProperty in childProp)
                             {
-                                var n1 = new Node(c, odcmProperty);
-                                c.ChildProperties.Add(n1);
+                                var alreadyTested = false;
+
+                                if (odcmProperty.Equals(c.Property))
+                                {
+                                    alreadyTested = true;
+                                }
+
+                                var cAux = c;
+                                while (!alreadyTested && cAux != null)
+                                {
+                                    if (cAux.Parent != null && cAux.Parent.Property != null)
+                                    {
+                                        if (cAux.Parent.Property.Type.Equals(odcmProperty.Type)) alreadyTested = true;
+                                    }
+
+                                    cAux = cAux.Parent;
+                                }
+
+                                if (!alreadyTested)
+                                {
+                                    var n1 = new Node(c, odcmProperty);
+                                    c.ChildProperties.Add(n1);
+                                }
                             }
 
                             c.Fields.AddRange(clazz.Properties.Except(childProp));
                         }
-                        
+
                         c.GenerateGraph();
                     }
                 }
