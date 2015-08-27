@@ -176,12 +176,6 @@
     </PropertyGroup>
     <Error Condition="!Exists('$(SolutionDir)\.nuget\NuGet.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\.nuget\NuGet.targets'))" />
   </Target>
-  <PropertyGroup Condition=" '$(OS)' == 'Windows_NT'">
-    <PreBuildEvent>
-	cd "$(SolutionDir)\submodules\vipr"
-	"$(MSBuildBinPath)\msbuild.exe" /p:Configuration=Debug;OutDir=$(TargetDir);Platform="Any CPU" /t:Clean;Rebuild "Vipr.sln"
-    </PreBuildEvent>
-  </PropertyGroup>
   <PropertyGroup Condition=" '$(OS)' != 'Windows_NT'">
     <PreBuildEvent>
         cd "$(SolutionDir)submodules/vipr"
@@ -189,7 +183,7 @@
     </PreBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
-    <PreBuildEvent>cd "$(SolutionDir)\submodules\vipr"
+    <PreBuildEvent Condition=" '$(OS)' == 'Windows_NT'" >cd "$(SolutionDir)\submodules\vipr"
 copy /y "$(SolutionDir)\vipr.NuGet.targets.patch" "$(SolutionDir)\submodules\vipr\.nuget\NuGet.targets"
 "$(MSBuildBinPath)\msbuild.exe" /p:Configuration=Debug;Platform="Any CPU" /t:Build "Vipr.sln"
 copy "$(SolutionDir)\submodules\vipr\src\Core\Vipr\bin\Debug\*.exe" $(TargetDir)
