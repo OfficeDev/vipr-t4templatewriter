@@ -165,6 +165,8 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="CSDL\aad_graph_v15_augmented_v4.xml" />
+    <Content Include="CSDL\discovery_metadata.xml" />
     <Content Include="CSDL\MSGraphMetadata.xml" />
     <Content Include="CSDL\OneNoteMetadata.xml" />
   </ItemGroup>
@@ -183,7 +185,7 @@
     </PreBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
-    <PreBuildEvent Condition=" '$(OS)' == 'Windows_NT'" >cd "$(SolutionDir)\submodules\vipr"
+    <PreBuildEvent Condition=" '$(OS)' == 'Windows_NT'">cd "$(SolutionDir)\submodules\vipr"
 copy /y "$(SolutionDir)\vipr.NuGet.targets.patch" "$(SolutionDir)\submodules\vipr\.nuget\NuGet.targets"
 "$(MSBuildBinPath)\msbuild.exe" /p:Configuration=Debug;Platform="Any CPU" /t:Build "Vipr.sln"
 copy "$(SolutionDir)\submodules\vipr\src\Core\Vipr\bin\Debug\*.exe" $(TargetDir)
