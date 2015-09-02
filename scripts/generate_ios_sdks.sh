@@ -2,8 +2,9 @@
 
 # deps:
 #
+# perl
 # ruby
-# [sudo] gem install xcodeproj
+# xcodeproj ([sudo] gem install xcodeproj)
 # mono (brew version seems to miss PCB, use the pkg from the official site)
 #
 
@@ -72,13 +73,15 @@ function processMetadata
 {
 	
 	ConfigPath="$1"
-	MetadataName="$2"
 	OutFilePath="$3"
 	
 	NamespaceOverride=""
 	PrimaryNamespaceName=""
+	EntityContainerName=""
 	
 	source "${ConfigPath}"
+	
+	MetadataName="$EntityContainerName"
 	
 	cd "$DebugPath"	
 	
@@ -91,7 +94,7 @@ function processMetadata
 	echo "\"PrimaryNamespaceName\" : \"${PrimaryNamespaceName}\"," >> "${JsonPath}"
     echo "\"NamespacePrefix\": \"${NamespacePrefix}\"," >> "${JsonPath}"
     echo "\"InitializeCollections\": \"false\"," >> "${JsonPath}"
-    echo "\"AllowShortActions\": \"false\"," >> "${JsonPath}"
+    echo "\"AllowShortActions\": \"true\"," >> "${JsonPath}"
     echo "\"NamespaceOverride\": \"${NamespaceOverride}\"" >> "${JsonPath}"
     echo "}" >> "${JsonPath}"
 
@@ -178,8 +181,14 @@ function processMetadata
 {
 	
 	ConfigPath="$1"
-	MetadataName="$2"
 	OutFilePath="$3"
+
+	EntityContainerName=""
+	
+	source "${ConfigPath}"
+	
+	MetadataName="$EntityContainerName"
+	
 	
 	cat >> "${SDK_BASE}/Office365.podspec" <<HEREDOC
 
@@ -190,8 +199,6 @@ function processMetadata
   end
 
 HEREDOC
-
-
 
 }
 

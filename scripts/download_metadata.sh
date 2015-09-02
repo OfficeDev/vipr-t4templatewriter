@@ -11,6 +11,7 @@ function processMetadata
 	echo "Processing ${MetadataName}..."
 	
 	Auth=''
+	EntityContainerName=''
 	
 	source "$ConfigPath"
 	
@@ -25,6 +26,11 @@ function processMetadata
 			curl "$MetadataLink" -o "$OutFilePath" 
 			;;
 	esac
+	
+	#Apply entity container rename
+	TMPFILE=$(mktemp "$TMPDIR/XXXXXXXXXXXXX")
+	cat "${OutFilePath}" | perl -pe "s/<EntityContainer Name=\"(.*?)\">/<EntityContainer Name=\"${EntityContainerName}\">/" > "$TMPFILE"
+	mv "$TMPFILE" "${OutFilePath}"
 	
 }
 

@@ -342,7 +342,7 @@
         <Parameter Name="id" Type="Edm.String" Unicode="false" />
         <ReturnType Type="Microsoft.OneNote.Api.CopyStatusModel" />
       </Function>
-      <EntityContainer Name="OneNoteApi">
+      <EntityContainer Name="OneNote">
         <Singleton Name="me" Type="Microsoft.OneNote.Api.Me" />
         <Singleton Name="myOrganization" Type="Microsoft.OneNote.Api.MyOrganization" />
         <FunctionImport Name="GetCopyStatus" Function="Microsoft.OneNote.Api.GetCopyStatus" IncludeInServiceDocument="true" />

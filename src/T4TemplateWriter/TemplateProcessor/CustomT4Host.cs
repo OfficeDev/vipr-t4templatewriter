@@ -30,14 +30,21 @@ namespace Vipr.T4TemplateWriter
         public void Reset(TemplateFileInfo templateInfo, String templatesDirectory, OdcmObject currentType, OdcmModel currentModel)
         {
             this.TemplateFile = templateInfo.FullPath;
+            this.TemplateName = templateInfo.TemplateName;
+            this.TemplateFileExtension = templateInfo.FileExtension;
+            this.CurrentTemplateType = templateInfo.TemplateType;
             this.TemplatesDirectory = templatesDirectory;
             this.CurrentType = currentType;
             this.CurrentModel = currentModel;
         }
+        
         public String TemplateFile { get; set; }
+        public String TemplateName { get; set; }
+        public String TemplateFileExtension { get; set; }
         public String TemplatesDirectory { get; set; }
         public OdcmObject CurrentType { get; set; }
         public OdcmModel CurrentModel { get; set; }
+        public TemplateType CurrentTemplateType { get; set; }
 
         private CodeWriterBase _codeWriter;
         public CodeWriterBase CodeWriter
