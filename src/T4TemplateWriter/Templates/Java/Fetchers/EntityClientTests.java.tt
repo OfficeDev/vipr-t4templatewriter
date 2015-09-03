@@ -43,9 +43,11 @@ public class <#=model.GetEntityContainer().ToUpperFirstChar()#>ClientTests exten
             {   
                 var singleItemPropertyName = "_" + prop.Property.Name.Singularize().ToLowerFirstChar();
                 var listPropertyName = "_list" + prop.Property.Name.ToLowerFirstChar();
+                var keyProperty = writer.GetKeyPropertyForClass(prop.Property.Type as OdcmClass);
+                var keyPropertyForUrl = keyProperty == null ? "Id" : keyProperty.Name.ToUpperFirstChar();
             #>
                 
-            List<<#=prop.Property.Type.GetTypeString()#>> <#=listPropertyName#> = client<#=strMethod + ".get" + prop.Property.Name + "()" #>.read().get();
+            List<<#=prop.Property.Type.GetTypeString()#>> <#=listPropertyName#> = client<#=strMethod + ".get" + prop.Property.Name.ToUpperFirstChar() + "()" #>.read().get();
             <#=prop.Property.Type.GetTypeString()#> <#=singleItemPropertyName#> = <#=listPropertyName#> == null? null : <#=listPropertyName#>.get(0);
             
             if(<#=singleItemPropertyName#> == null){
@@ -53,11 +55,11 @@ public class <#=model.GetEntityContainer().ToUpperFirstChar()#>ClientTests exten
             }
             
             <#   
-                strMethod += ".get" + prop.Property.Name + "().getById(" + singleItemPropertyName +".getId())";
+                strMethod += ".get" + prop.Property.Name.ToUpperFirstChar() + "().getById(" + singleItemPropertyName +".get" + keyPropertyForUrl + "())";
             }
             else
             {
-                strMethod += ".get" +  prop.Property.Name + "()";
+                strMethod += ".get" +  prop.Property.Name.ToUpperFirstChar() + "()";
             }
         }
             
@@ -88,11 +90,11 @@ public class <#=model.GetEntityContainer().ToUpperFirstChar()#>ClientTests exten
         
         if(prop.Property.IsCollection()){
 #>
-                    List<<#=prop.Property.Type.GetTypeString()#>> _<#=prop.Property.Name.ToLowerFirstChar().ToLowerFirstChar()#> = client<#=strMethod + ".get" + prop.Property.Name#>().read().get();
+                    List<<#=prop.Property.Type.GetTypeString()#>> _<#=prop.Property.Name.ToLowerFirstChar().ToLowerFirstChar()#> = client<#=strMethod + ".get" + prop.Property.Name.ToUpperFirstChar()#>().read().get();
 <#
 }else{
 #>
-                    <#=prop.Property.Type.GetTypeString()#> _<#=prop.Property.Name.ToLowerFirstChar()#> = client<#=strMethod+ ".get" + prop.Property.Name#>().read().get();
+                    <#=prop.Property.Type.GetTypeString()#> _<#=prop.Property.Name.ToLowerFirstChar()#> = client<#=strMethod+ ".get" + prop.Property.Name.ToUpperFirstChar()#>().read().get();
 <#
 }
 #>
@@ -144,7 +146,7 @@ public class <#=model.GetEntityContainer().ToUpperFirstChar()#>ClientTests exten
             var strMethod = GetFullMethodCall(prop.Parent);
 
 #>
-                    <#=prop.Property.Type.GetTypeString()#> _created<#=prop.Property.Name.Singularize().ToLowerFirstChar()#> = client<#=strMethod + ".get" + prop.Property.Name#>().add(sample<#=prop.Property.Type.GetTypeString()#>).get();
+                    <#=prop.Property.Type.GetTypeString()#> _created<#=prop.Property.Name.Singularize().ToLowerFirstChar()#> = client<#=strMethod + ".get" + prop.Property.Name.ToUpperFirstChar()#>().add(sample<#=prop.Property.Type.GetTypeString()#>).get();
                     
                     if (_created<#=prop.Property.Name.Singularize().ToLowerFirstChar()#> != null)
                         result.setStatus(TestStatus.Passed);

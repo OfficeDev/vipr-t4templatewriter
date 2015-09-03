@@ -83,5 +83,11 @@ root for authoritative license information.﻿";
 
             return testName;
         }
+
+        public OdcmProperty GetKeyPropertyForClass(OdcmClass clazz)
+        {
+            var entityClass = clazz as OdcmEntityClass;
+            return entityClass != null ? entityClass.Key.FirstOrDefault() : null;
+        }
     }
 }
