@@ -191,7 +191,6 @@ public class <#=model.GetEntityContainer().ToUpperFirstChar()#>ClientTests exten
         this();
         mFiller = new ObjectFiller();
         mNotSupportedTests = notSupportedTests;
-        setSubelementsForContainer();
 
         for (PropertyFilter pf : filters) {
             mFiller.addPropertyFilter(pf);
@@ -236,15 +235,5 @@ public class <#=model.GetEntityContainer().ToUpperFirstChar()#>ClientTests exten
 
 <#    
     }
-    //Set subelements to autogenerate lists of complex types
 #>
-    private void setSubelementsForContainer(){
-<#
-    foreach(var subElement in subElements){
-#>
-        mFiller.setSubElementClass(<#=subElement.ParentType.GetTypeString()#>.class, "<#=subElement.PropertyName#>", <#=subElement.PropertyType.GetTypeString()#>.class);
-<#  
-    }
-#>
-    }
 }
