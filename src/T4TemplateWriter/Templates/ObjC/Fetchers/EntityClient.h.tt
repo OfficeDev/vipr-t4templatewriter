@@ -1,44 +1,38 @@
 ﻿<#@ template debug="true" hostspecific="true" language="C#" #>
 <#@ include file="Shared.template.tt" #>
 
-<#
-var entityName = prefix + "Client"; 
-
-var containerProps = model.EntityContainer.Properties;
-
-var classes = new List<string>();
-
-foreach (var prop in containerProps) {
-	var classString =  prop.Type.GetTypeString() + (prop.IsCollection() ?  "CollectionFetcher;": "Fetcher;");
-	if (!classes.Contains(classString)) { classes.Add(classString); }
-}
-
-foreach (var propertyClass in classes) {
-#>
-@class <#=propertyClass#>
-<#
-}
+<# 
+string clientName = prefix + "Client";
+GenerateHeaderGuards(clientName); 
 #>
 
 #import <orc.h>
 #import "<#=prefix#>Models.h"
 
-<#=writer.GetHeaderDoc(entityName)#>
-@interface <#=entityName#> : MSOrcBaseContainer
+<#
+GenerateClassForwardDeclarationsForFetcher(model.EntityContainer);
+#>
+
+/** Client <#=clientName#>
+ *
+ */
+@interface <#=clientName#> : MSOrcBaseContainer
 
 - (instancetype)initWithUrl:(NSString *)url  dependencyResolver:(id<MSOrcDependencyResolver>)resolver;
 <#
 
-foreach(var prop in containerProps) {
+foreach(var prop in model.EntityContainer.Properties) {
 	if (prop.IsCollection()) {
 #>
-@property (retain, nonatomic, readonly, getter=<#=prop.Name.ToLowerFirstChar()#>) <#=prop.Type.GetTypeString()#>CollectionFetcher *<#=prop.Name.ToLowerFirstChar()#>;
+@property (strong, nonatomic, readonly, getter=<#=prop.GetGetterString()#>) <#=prop.GetTypeString(true)#>CollectionFetcher *<#=prop.GetPropertyString()#>;
 <#
 	} else {
 #>
-@property (retain, nonatomic, readonly, getter=<#=prop.Name.ToLowerFirstChar()#>) <#=prop.Type.GetTypeString()#>Fetcher *<#=prop.Name.ToLowerFirstChar()#>;
+@property (strong, nonatomic, readonly, getter=<#=prop.GetGetterString()#>) <#=prop.GetTypeString(true)#>Fetcher *<#=prop.GetPropertyString()#>;
 <#	
 	}
 }
 #>
 @end
+
+#endif

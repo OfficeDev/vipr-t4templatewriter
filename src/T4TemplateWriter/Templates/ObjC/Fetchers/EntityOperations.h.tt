@@ -2,50 +2,29 @@
 <#@ include file="Shared.template.tt"#>
 
 <#
-var entity = host.CurrentType.AsOdcmClass();
-
-var entityName = prefix + entity.Name + "Operations";
-string baseEntity = entity.Base == null ? "MSOrcOperations" 
-					  : prefix + entity.Base.Name.Substring(entity.Base.Name.LastIndexOf(".") +1) + "Operations";
-
+string operationsName = entity.ToObjCInterface() + "Operations";                      
+string baseEntityName = (entity.Base == null) ? "MSOrcOperations" : (entity.Base.ToObjCInterface() + "Operations");
+GenerateHeaderGuards(operationsName);
 #>				  		
+
 #import <orc.h>
 #import "<#=prefix#>Models.h"
-<#if(entity.Base != null){
-#>
-#import "<#=baseEntity#>.h"
-<#
-}#>
+#import "<#=baseEntityName#>.h"
 
-<#=writer.GetHeaderDoc(entityName)#>
-@interface <#=entityName#> : <#=baseEntity#>
 
-- (instancetype)initWithUrl:(NSString *)urlComponent parent:(id<MSOrcExecutable>)parent;
+/** <#=operationsName#>
+ *
+ */
+@interface <#=operationsName#> : <#=baseEntityName#>
 
-<#
-if(entity.HasActions())
-{
-	foreach(var action in entity.Actions())
-	{
-		if(!action.IsBoundToCollection)
-		{
+- (instancetype)initOperationWithUrl:(NSString *)urlComponent parent:(id<MSOrcExecutable>)parent;
 
-#>
-<#=writer.GetMethodHeader(action)#>;
-<#				
-
-		}
-		
-		if(!action.IsFunction() && !action.IsBoundToCollection)
-		{
-
-#>
-<#=writer.GetMethodHeaderRaw(action)#>;
 <#
 
-		}
-	}
-}
+GenerateActionMethodDeclarations(entity);
+
 #>
 
 @end
+
+#endif

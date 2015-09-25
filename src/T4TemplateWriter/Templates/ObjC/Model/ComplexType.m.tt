@@ -1,23 +1,12 @@
 ﻿<#@ template debug="true" hostspecific="true" language="C#" #>
 <#@ include file="Shared.template.tt"#>
 
-#import "<#=prefix#>Models.h"
-<#
-var entity = host.CurrentType.AsOdcmClass();
-#>
 
-<#=writer.GetImplementationDoc(entity.Name)#>
-@implementation <#=prefix + entity.Name#>	
+#import "<#=prefix#>Models.h"
+
+<# GenerateImplementationPrologue(entity); #>
 
 @synthesize odataType = _odataType;
-<#
-foreach(var prop in entity.Properties)
-{
-#>
-@synthesize <#=writer.GetName(prop.Name)#> = _<#=writer.GetName(prop.GetToLowerFirstCharName())#>;
-<#
-}
-#>
 
 - (instancetype)init {
 
@@ -29,67 +18,16 @@ foreach(var prop in entity.Properties) {
 	
 	if(prop.IsCollection){
 #>
-		_<#=writer.GetName(prop.GetToLowerFirstCharName())#>  = [[NSMutableArray alloc] initWithCollectionType:@"<#=writer.GetPrefix() + prop.Type.Name#>"];
+		_<#=prop.Name.ToObjCProperty()#> = [[NSMutableArray alloc] initWithCollectionType:@"<#=prop.GetTypeString()#>"];
 <#
 	}
 }
 #>
-	}
+    }
 
 	return self;
 }
-<#
-foreach(var prop in entity.Properties)
-{
-	if(prop.Type is OdcmEnum && !prop.IsCollection){
 
-		var enumProp = host.CurrentModel.GetEnumTypes().First(e=> e.Name == prop.Type.Name);
-#>
-- (void)<#=FixSetterName(prop.Name)#>String:(NSString *)value {
-<#
-		for(var i=1; i <= enumProp.Members.Count; i++)
-		{
-
-			string value = enumProp.Members[i -1].Name;
-
-#>
-
-	if ([value isEqualToString:@"<#=value#>"]) {
-
-		_<#=writer.GetName(prop.GetToLowerFirstCharName())#> = <#=writer.GetPrefix() + "_" + prop.Type.Name + "_" + value#>;
-        [self valueChangedForInt:<#=prefix + "_" + prop.Type.Name + "_" + value#> forProperty:@"<#=writer.GetName(prop.Name)#>"];
-	}
-<#
-		}
-#>
-}
-<#
-	}else{
-   
-    #>
-
-- (void)<#=FixSetterName(prop.Name)#>:(<#=prop.ToSetterTypeString()#>) <#=writer.GetName(prop.GetToLowerFirstCharName())#> {
-    _<#=writer.GetName(prop.GetToLowerFirstCharName())#> = <#=writer.GetName(prop.GetToLowerFirstCharName())#>;
-<#
-    if(prop.Type.Name == "Int32" || prop.Type.Name == "Int64" ){
-#>
-    [self valueChangedForInt:<#=writer.GetName(prop.GetToLowerFirstCharName())#> forProperty:@"<#=writer.GetName(prop.Name)#>"];
-<#
-    }else if(prop.Type.Name == "Boolean"){
-#>
-    [self valueChangedForBool:<#=writer.GetName(prop.GetToLowerFirstCharName())#> forProperty:@"<#=writer.GetName(prop.Name)#>"];
-<#
-    }else{
-#>
-	[self valueChanged:<#=writer.GetName(prop.GetToLowerFirstCharName())#> forProperty:@"<#=writer.GetName(prop.Name)#>"];
-<#
-    }
-#>
-}
-    <#
-    }
-}
-
-#>
+<# GenerateSetterImplementationsForProperties(entity); #>
 
 @end

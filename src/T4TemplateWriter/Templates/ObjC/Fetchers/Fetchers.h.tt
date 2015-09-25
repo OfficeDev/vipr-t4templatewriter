@@ -2,16 +2,19 @@
 <#@ include file="Shared.template.tt"#>
 
 <#
+
+GenerateHeaderGuards(prefix+"Fetchers");
+
 var entityTypes = model.GetEntityTypes();
 
 foreach(var et in entityTypes)
 {
 
 #>
-#import "<#=prefix + et.Name #>CollectionFetcher.h"
-#import "<#=prefix + et.Name #>CollectionOperations.h"
-#import "<#=prefix + et.Name #>Fetcher.h"
-#import "<#=prefix + et.Name #>Operations.h"
+#import "<#=et.ToObjCInterface() #>CollectionFetcher.h"
+#import "<#=et.ToObjCInterface() #>CollectionOperations.h"
+#import "<#=et.ToObjCInterface() #>Fetcher.h"
+#import "<#=et.ToObjCInterface() #>Operations.h"
 <#
 
 }
@@ -19,3 +22,5 @@ foreach(var et in entityTypes)
 #>
 
 #import "<#=prefix#>Client.h" 
+
+#endif

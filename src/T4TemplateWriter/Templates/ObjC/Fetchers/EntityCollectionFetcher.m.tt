@@ -2,13 +2,16 @@
 <#@ include file="Shared.template.tt" #>
 
 <#
-var entity = host.CurrentType.AsOdcmClass();
-var entityName = prefix + entity.Name + "CollectionFetcher";
+string entityName = entity.ToObjCInterface();
+string fetcherName = entityName + "Fetcher";
+string collectionFetcherName = entityName + "CollectionFetcher";
 #>
+
+//#import "<#=fetcherName#>.h"
+//#import "<#=collectionFetcherName#>.h"
 #import "<#=prefix#>Fetchers.h"
 
-<#=writer.GetImplementationDoc(entityName)#>
-@implementation <#=entityName#>
+@implementation <#=collectionFetcherName#>
 
 - (instancetype)initWithUrl:(NSString *)urlComponent parent:(id<MSOrcExecutable>)parent {
 
@@ -25,58 +28,58 @@ var entityName = prefix + entity.Name + "CollectionFetcher";
 
 - (<#=prefix + entity.Name#>Fetcher *)getById:(NSString *)id {
 
-    return [[<#=prefix + entity.Name#>Fetcher alloc] initWithUrl:[[NSString alloc] initWithFormat:@"('%@')" ,id] parent:self];
+    return [[<#=fetcherName#> alloc] initWithUrl:[[NSString alloc] initWithFormat:@"('%@')" ,id] parent:self];
 }
 
-- (<#=entityName#> *)select:(NSString *)params {
+- (<#=collectionFetcherName#> *)select:(NSString *)params {
     [super select:params];
     
     return self;
 }
 
-- (<#=entityName#> *)filter:(NSString *)params{
+- (<#=collectionFetcherName#> *)filter:(NSString *)params{
     [super filter:params];
     
     return self;
 }
 
-- (<#=entityName#> *)search:(NSString *)params {
+- (<#=collectionFetcherName#> *)search:(NSString *)params {
     [super search:params];
     
     return self;
 }
 
-- (<#=entityName#> *)top:(int)value {
+- (<#=collectionFetcherName#> *)top:(int)value {
     [super top:value];
     
     return self;
 }
 
-- (<#=entityName#> *)skip:(int)value {
+- (<#=collectionFetcherName#> *)skip:(int)value {
     [super skip:value];
     
     return self;
 }
 
-- (<#=entityName#> *)expand:(NSString *)value {
+- (<#=collectionFetcherName#> *)expand:(NSString *)value {
     [super expand:value];
     
     return self;
 }
 
-- (<#=entityName#> *)orderBy:(NSString *)params {
+- (<#=collectionFetcherName#> *)orderBy:(NSString *)params {
     [super orderBy:params];
     
     return self;
 }
 
-- (<#=entityName#> *)addCustomParametersWithName:(NSString *)name value:(id)value {
+- (<#=collectionFetcherName#> *)addCustomParametersWithName:(NSString *)name value:(id)value {
     [super addCustomParametersWithName:name value:value];
     
     return self;
 }
 
-- (<#=entityName#> *)addCustomHeaderWithName:(NSString *)name value:(NSString *)value {
+- (<#=collectionFetcherName#> *)addCustomHeaderWithName:(NSString *)name value:(NSString *)value {
     [super addCustomHeaderWithName:name value:value];
     
     return self;

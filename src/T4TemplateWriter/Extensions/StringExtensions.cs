@@ -26,16 +26,19 @@ namespace Vipr.T4TemplateWriter.Extensions
 
         public static string ToLowerFirstChar(this string input)
         {
+            if(input=="") return "";
             return Char.ToLowerInvariant(input[0]) + input.Substring(1);
         }
 
         public static string ToUpperFirstChar(this string input)
         {
+            if(input=="") return "";
             return Char.ToUpperInvariant(input[0]) + input.Substring(1);
         }
         
         public static string ToCamelCasePrefix(this string input, string prefix)
         {
+            if(input=="") return "";
             return (prefix+input.ToUpperFirstChar()).ToLowerFirstChar();   
         }
 

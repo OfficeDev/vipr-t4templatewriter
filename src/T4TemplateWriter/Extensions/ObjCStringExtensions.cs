@@ -11,7 +11,8 @@ namespace Vipr.T4TemplateWriter.Extensions
 {
     public static class ObjCStringExtensions
     {
-        private static string UniquePrefix="Xx__o0o__xX_";
+        public static string EntityContainerName="";
+        private static string InvalidIdentifierEscapePrefix="_";
         private static HashSet<string> ObjCReservedOrProblematicKeywords=null;
         
         public static string ToObjCIdentifier(this string input)
@@ -79,17 +80,41 @@ namespace Vipr.T4TemplateWriter.Extensions
             
             input=input.Trim();
        
-            if(ObjCReservedOrProblematicKeywords.Contains(input))
+            if(ObjCReservedOrProblematicKeywords.Contains(input) ||
+              (input.StartsWith(InvalidIdentifierEscapePrefix) && 
+              ObjCReservedOrProblematicKeywords.Contains(input.Substring(InvalidIdentifierEscapePrefix.Length)))
+            )
             {
-                return UniquePrefix+input;
+                return InvalidIdentifierEscapePrefix+input;
             }
             
 			return input;
 		}
         
+        public static string ToObjCIdentifierPrefix(this string input, string prefix)
+        {
+            return input.ToCamelCasePrefix(prefix).ToObjCIdentifier();
+        }
+        
+        public static string ToObjCMethodSignatureParameter(this string input, string methodName, int paramPos)
+        {
+            if(paramPos==0)
+            {
+                return "With" + input.ToUpperFirstChar();
+            }
+            else return input.ToObjCMethodParameter();
+        }
+    
+        public static string ToObjCMethodParameter(this string input)
+        {
+            return input.ToLowerFirstChar().ToObjCIdentifier();
+        }
+    
         public static string ToObjCNamespacePrefixedIdentifier(this string input)
         {
-            return (ConfigurationService.Settings.NamespacePrefix+input.ToUpperFirstChar()).ToObjCIdentifier();
+            return (ConfigurationService.Settings.NamespacePrefix
+            +EntityContainerName
+            +input.ToUpperFirstChar()).ToObjCIdentifier();
         }
         
         public static string ToObjCEnum(this string input)
@@ -109,12 +134,13 @@ namespace Vipr.T4TemplateWriter.Extensions
         
         public static string ToObjCProperty(this string input)
         {
+            if(input.StartsWith("is")) input=input.Substring(2);
             return input.ToCamelCasePrefix("").ToObjCIdentifier();
         }
         
         public static string ToObjCMethod(this string input)
         {
-            return input.ToUpperFirstChar().ToObjCIdentifier();
+            return input.ToLowerFirstChar().ToObjCIdentifier();
         }
         
         public static string ToObjCSetter(this string input)
@@ -122,18 +148,21 @@ namespace Vipr.T4TemplateWriter.Extensions
             return input.ToCamelCasePrefix("set").ToObjCIdentifier();
         }
         
-        public static string ToObjCGetter(this string input)
+        public static string ToObjCGetter(this string input, bool isBool=false)
         {
             //fix names that violate semantic rules for methods that
             //create owned objects
 
             StringComparison strCmp=StringComparison.CurrentCultureIgnoreCase;
+            
+            if(isBool) input=input.ToCamelCasePrefix("is").ToObjCIdentifier();
 
             if(input.StartsWith("alloc",strCmp) || input.StartsWith("new",strCmp)
             || input.StartsWith("copy",strCmp) || input.StartsWith("mutableCopy",strCmp))
             {
                 return input.ToCamelCasePrefix("get").ToObjCIdentifier();
             }
+            
 
             return input.ToCamelCasePrefix("").ToObjCIdentifier();
         }

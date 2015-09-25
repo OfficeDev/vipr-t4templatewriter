@@ -172,6 +172,8 @@ Pod::Spec.new do |s|
   s.exclude_files = "**/Build/**/*"
   s.requires_arc = true
   s.dependency "orc"
+  
+  s.source_files = "sdk/**/*.{h,m}"
 
   # --- Subspecs ------------------------------------------------------------------#
 

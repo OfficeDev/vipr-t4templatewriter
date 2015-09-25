@@ -1,44 +1,13 @@
 ﻿<#@ template debug="true" hostspecific="true" language="C#" #>
 <#@ include file="Shared.template.tt"#>
 
-<# GenerateHeaderGuards(); #>
-
-<#
-var entity = host.CurrentType.AsOdcmClass();
-
-var imports = new List<string>();
-var classes = new List<string>();
-
-foreach(var r in entity.Properties){
-	if(r.Type is OdcmEnum){
-		string v = string.Format("#import \"{0}.h\"", r.Type.GetTypeString());
-		if(!imports.Contains(v))
-			imports.Add(v);
-	}else if(r.Type.IsComplex() && !r.Type.IsSystem()){
-		string v = string.Format("@class {0};", r.Type.GetTypeString());
-		if(!classes.Contains(v))
-			classes.Add(v);
-	}
-}
-if(classes.Any()){
-#>
-
-<#
-}
-	foreach(var cla in classes){
-#>
-<#=cla#>
-<#
-	}
-#>
+<# GenerateHeaderGuards(entity.ToObjCInterface()); #>
 
 #import <Foundation/Foundation.h>
+
 <#
-	foreach(var imp in imports){
-#>
-<#=imp#>
-<#
-	}
+
+GenerateClassForwardDeclarations(entity);
 
 GenerateInterfacePrologue(entity);
 
