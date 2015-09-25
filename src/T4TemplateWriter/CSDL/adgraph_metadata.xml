@@ -373,7 +373,7 @@
 				<Parameter Name="memberId" Type="Edm.String"/>
 				<ReturnType Type="Edm.Boolean"/>
 			</Function>
-			<EntityContainer Name="Directory">
+			<EntityContainer Name="DirectoryServices">
 				<EntitySet EntityType="Microsoft.DirectoryServices.DirectoryObject" Name="directoryObjects"/>
 				<EntitySet EntityType="Microsoft.DirectoryServices.OAuth2PermissionGrant" Name="oauth2PermissionGrants"/>
 				<EntitySet EntityType="Microsoft.DirectoryServices.SubscribedSku" Name="subscribedSkus"/>

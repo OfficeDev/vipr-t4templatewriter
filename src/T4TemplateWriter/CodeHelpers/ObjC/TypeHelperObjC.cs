@@ -12,18 +12,11 @@ namespace Vipr.T4TemplateWriter.CodeHelpers.ObjC
 {
 	public static class TypeHelperObjC
 	{
-	    public static string Prefix = "";//ConfigurationService.Settings.NamespacePrefix;
+        public static string Prefix = "";
 
-        public const string ReservedPrefix = "$$__$$";
-        public static ICollection<string> ReservedNames {
-            get {
-                return new HashSet<string> {
-                    "description", "default"  , "self" 
-                };
-            }
-        }
-
-		public static string GetTypeString(this OdcmType type) {
+		public static string GetTypeString(this OdcmType type)
+        {
+            
 			if (type == null) {
 				return "int";
 			}
@@ -41,7 +34,7 @@ namespace Vipr.T4TemplateWriter.CodeHelpers.ObjC
 			case "Binary":
 				return "NSData";
 			case "Boolean":
-				return "BOOL";
+				return "bool";
 			case "Stream":
 				return "NSStream";
 			default:
@@ -49,48 +42,87 @@ namespace Vipr.T4TemplateWriter.CodeHelpers.ObjC
 			}
 		}
 
-        public static string GetTypeString(this OdcmProperty property) {
-            return property.Type.GetTypeString();
-        }
-
-        public static bool IsComplex(this OdcmType type) {
-            string t = GetTypeString(type);
-            return !(t == "int" || t == "BOOL" || t == "Byte");
-        }
-
-		public static bool IsComplex(this OdcmProperty property) {
-            return property.Type.IsComplex();
-		}
-
-        public static string ToSetterTypeString(this OdcmProperty property)
+        public static string GetTypeString(this OdcmProperty property, bool getRealType=false)
         {
-            return string.Format("{0} {1}", property.GetFullType(), (property.IsComplex() ? "*" : string.Empty));
+            if (!getRealType && property.IsCollection)
+				return  "NSMutableArray";
+			else
+                return property.Type.GetTypeString();
+        }
+        
+        public static string GetTypeString(this OdcmParameter parameter, bool getRealType=false)
+        {
+            if (!getRealType && parameter.IsCollection)
+				return  "NSMutableArray";
+			else
+                return parameter.Type.GetTypeString();
+        }
+        
+        
+        //For allocation and passing of parameters
+        public static string GetTypeReferenceString(this OdcmType type)
+        {
+            return type.GetTypeString() + (type.IsComplex()?" *":"");
+        }
+        
+        public static string GetTypeReferenceString(this OdcmProperty property)
+        {
+            if (property.IsCollection)
+				return  "NSMutableArray *";
+			else
+                return property.Type.GetTypeReferenceString();
+        } 
+        
+        public static string GetSetterString(this OdcmProperty property)
+        {
+            return property.Name.ToObjCSetter();
         }
 
-		public static string ToPropertyString(this OdcmProperty property)
-		{
-			return string.Format("{0} {1}{2}",property.GetFullType(), (property.IsComplex() ? "*" : string.Empty), SanitizePropertyName(property));
-		}
-
-        public static string SanitizePropertyName(this OdcmProperty property) {
-            if (ReservedNames.Contains(property.Name.ToLower())) {
-                return ReservedPrefix + property.Name;
-            }
-            return property.Name;
+        public static string GetGetterString(this OdcmProperty property)
+        {
+            return property.Name.ToObjCGetter(property.IsBool());
         }
-
-		public static string GetFullType(this OdcmProperty property) {
+        
+        public static string GetPropertyString(this OdcmProperty property)
+        {
+            return property.Name.ToObjCProperty();
+        }
+        
+        ///
+        /// DE PRE CA TED !!!
+        /// 
+        public static string GetFullType(this OdcmProperty property)
+        {
 			if (property.IsCollection)
 				return  "NSMutableArray";
 			else
                 return property.Type.GetTypeString();
 		}
 
+        ///
+        /// DE PRE CA TED !!!
+        /// 
 		public static string GetFullType(this OdcmType type)
-		{
+        {
 			return GetTypeString(type);
 		}
+        
+        public static bool IsComplex(this OdcmType type)
+        {
+            string t = GetTypeString(type);
+            return !(t == "int" || t == "bool" || t == "Byte");
+        }
 
+		public static bool IsComplex(this OdcmProperty property)
+        {
+            return property.Type.IsComplex();
+		}
+        
+        public static bool IsFromOurNamespace(this OdcmType type)
+        {
+            return ConfigurationService.Settings.NamespacePrefix!="" && GetTypeString(type).StartsWith(ConfigurationService.Settings.NamespacePrefix);
+        }
+        
 		public static bool IsSystem(this OdcmProperty property)
 		{
             return property.Type.IsSystem();
@@ -99,24 +131,37 @@ namespace Vipr.T4TemplateWriter.CodeHelpers.ObjC
 		public static bool IsSystem(this OdcmType type)
 		{
 			string t = GetTypeString(type);
-			return (t == "int" || t == "BOOL" || t == "Byte" || t == "NSString" || t == "NSDate");
+			return (t == "int" || t == "bool" || t == "Byte" || t == "NSString" || t == "NSDate");
 		}
-
-		public static string GetToLowerFirstCharName(this OdcmProperty property)
-		{
-			return property.Name.ToLowerFirstChar();
-		}
-
-		public static string GetToLowerImport(this OdcmProperty property)
-		{
-			var index = property.Type.Name.LastIndexOf('.');
-			return property.Type.Name.Substring(0, index).ToLower() + property.Type.Name.Substring(index);
-		}
-
 
 		public static bool IsEnum(this OdcmProperty property)
 		{
 			return property.Type is OdcmEnum;
 		}
+        
+        public static bool IsBool(this OdcmProperty property)
+		{
+			return GetTypeString(property.Type) == "bool";
+		}
+
+        public static bool IsInt(this OdcmProperty property)
+		{
+			return GetTypeString(property.Type) == "int";
+		}
+        
+        public static string ToObjCInterface(this OdcmClass e)
+        {
+            return e!=null?e.Name.ToObjCInterface():"";
+        }
+        
+        public static string ToObjCInterface(this OdcmProperty prop)
+        {
+            return prop!=null?prop.Type.Name.ToObjCInterface():"";
+        }
+        
+        public static string GetMethodString(this OdcmMethod method)
+        {
+            return method.Name.ToObjCMethod();  
+        }
 	}
 }

@@ -1,29 +1,29 @@
 ﻿<#@ template debug="true" hostspecific="true" language="C#" #>
 <#@ include file="Shared.template.tt"#>
 
-<# GenerateHeaderGuards(); #>
+<# 
 
-<#
-var entity = host.CurrentType.AsOdcmEnum();
+var curTypeAsEnum = host.CurrentType.AsOdcmEnum();
+GenerateHeaderGuards(curTypeAsEnum.Name.ToObjCEnum()); 
+
 #>
 
 #import <Foundation/Foundation.h>
 
-
-/** Enum <#= entity.Name.ToObjCEnum() #>
+/** Enum <#= curTypeAsEnum.Name.ToObjCEnum() #>
  *
  */
-typedef NS_ENUM(NSInteger, <#= entity.Name.ToObjCEnum() #>) {
+typedef NS_ENUM(NSInteger, <#= curTypeAsEnum.Name.ToObjCEnum() #>) {
 
 <#
 
-for(var i=1; i <= entity.Members.Count; i++)
+for(var i=0; i < curTypeAsEnum.Members.Count; i++)
 {
 
-string value = entity.Members[i -1].Name.ToObjCEnumEntry() + (i == entity.Members.Count ? string.Empty : ",");
+string value = curTypeAsEnum.Members[i].Name.ToObjCEnumEntry(curTypeAsEnum.Name) + ((i == curTypeAsEnum.Members.Count-1) ? "" : ",");
 
 #>
-    /** Enum entry <#= entity.Members[i -1].Name.ToObjCEnumEntry()#>
+    /** Enum entry <#= curTypeAsEnum.Members[i].Name.ToObjCEnumEntry(curTypeAsEnum.Name)#>
      * */
     <#= value#>
 <#  

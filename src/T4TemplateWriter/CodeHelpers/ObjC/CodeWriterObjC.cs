@@ -21,41 +21,38 @@ namespace Vipr.T4TemplateWriter.CodeHelpers.ObjC {
             TypeHelperObjC.Prefix = GetPrefix();
         }
 
-        public string GetPrefix() {
-            if (this.CurrentModel != null) {
+        public string GetPrefix()
+        {
+            if (this.CurrentModel != null)
+            {
                 return ConfigurationService.Settings.NamespacePrefix + this.CurrentModel.EntityContainer.Name;
-            } else {
+            } 
+            else 
+            {
                 return ConfigurationService.Settings.NamespacePrefix;
             }
         }
 
-
-        public override String WriteOpeningCommentLine() {
+        public override String WriteOpeningCommentLine() 
+        {
             return "/*******************************************************************************\n";
         }
 
-        public override String WriteClosingCommentLine() {
+        public override String WriteClosingCommentLine() 
+        {
             return "\n******************************************************************************/";
         }
 
-        public override string WriteInlineCommentChar() {
+        public override string WriteInlineCommentChar() 
+        {
             return "// ";
         }
-        
-
-        public string GetOutputPath(string templateName, TemplateType templateType, string entityTypeName)
-        { 
-            string result;
-
-            if (templateName.Contains("Entity") && (templateType == TemplateType.Fetchers)) {
-                result = templateName.Replace("Entity", entityTypeName);
-            } else {
-                result = entityTypeName;
-            }
-            
-            return GetPrefix()+result;
+    
+        public string NewStringFromIntegerVariable(string variableName)
+        {
+            return "[[NSString alloc] initWithFormat:@\"%d\", " + variableName + "]";
         }
-        
+
         /***************
          * DELETE AFTER ME
          ************************************

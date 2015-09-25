@@ -1,7 +1,7 @@
 ﻿<#@ template debug="true" hostspecific="true" language="C#" #>
 <#@ include file="Shared.template.tt"#>
 
-<# GenerateHeaderGuards(); #>
+<# GenerateHeaderGuards(prefix+"Models"); #>
 
 #import "NSArray+Extension.h"
 

@@ -2,7 +2,7 @@
 <edmx:Edmx Version="4.0" xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx">
   <edmx:DataServices>
     <Schema Namespace="Microsoft.OneNote.Api" xmlns="http://docs.oasis-open.org/odata/ns/edm">
-      <EntityType Name="Me">
+      <EntityType Name="User">
         <Key>
           <PropertyRef Name="id" />
         </Key>
@@ -27,6 +27,7 @@
         <NavigationProperty Name="sectionGroups" Type="Collection(Microsoft.OneNote.Api.SectionGroup)" ContainsTarget="true" />
         <NavigationProperty Name="pages" Type="Collection(Microsoft.OneNote.Api.Page)" ContainsTarget="true" />
         <NavigationProperty Name="resources" Type="Collection(Microsoft.OneNote.Api.Resource)" ContainsTarget="true" />
+        <NavigationProperty Name="operations" Type="Collection(Microsoft.OneNote.Api.Operation)" ContainsTarget="true" />
       </EntityType>
       <EntityType Name="Notebook">
         <Key>
@@ -207,6 +208,17 @@
         </Property>
         <Annotation Term="Org.OData.Core.V1.Description" String="A resource in a OneNote page" />
       </EntityType>
+      <EntityType Name="Operation" OpenType="true">
+        <Key>
+          <PropertyRef Name="id" />
+        </Key>
+        <Property Name="id" Type="Edm.String" Nullable="false" />
+        <Property Name="status" Type="Edm.String" />
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="lastActionDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="resourceLocation" Type="Edm.String" />
+        <Property Name="error" Type="Microsoft.OneNote.Api.OperationError" />
+      </EntityType>
       <ComplexType Name="NotebookLinks">
         <Property Name="oneNoteClientUrl" Type="Microsoft.OneNote.Api.ExternalLink">
           <Annotation Term="Org.OData.Core.V1.Description" String="The value of oneNoteClientURL can be used to open the notebook using the OneNote native client app if it's installed." />
@@ -239,6 +251,10 @@
         <Property Name="siteCollectionId" Type="Edm.String" />
         <Property Name="siteId" Type="Edm.String" />
       </ComplexType>
+      <ComplexType Name="OperationError">
+        <Property Name="code" Type="Edm.String" />
+        <Property Name="message" Type="Edm.String" />
+      </ComplexType>
       <ComplexType Name="PatchContentCommand">
         <Property Name="action" Type="Microsoft.OneNote.Api.PatchActionType" Nullable="false" />
         <Property Name="target" Type="Edm.String" Nullable="false" />
@@ -252,7 +268,8 @@
         <Property Name="id" Type="Edm.String" Nullable="false" />
         <NavigationProperty Name="sites" Type="Collection(Microsoft.OneNote.Api.Site)" ContainsTarget="true" />
       </EntityType>
-      <ComplexType Name="CopyStatusModel" OpenType="true">
+      <ComplexType Name="CopyStatusModel">
+        <Property Name="id" Type="Edm.String" />
         <Property Name="status" Type="Edm.String" />
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
       </ComplexType>
@@ -338,14 +355,10 @@
         <Parameter Name="groupId" Type="Edm.String" Unicode="false" />
         <ReturnType Type="Microsoft.OneNote.Api.CopyStatusModel" />
       </Action>
-      <Function Name="GetCopyStatus">
-        <Parameter Name="id" Type="Edm.String" Unicode="false" />
-        <ReturnType Type="Microsoft.OneNote.Api.CopyStatusModel" />
-      </Function>
       <EntityContainer Name="OneNote">
-        <Singleton Name="me" Type="Microsoft.OneNote.Api.Me" />
+        <EntitySet Name="users" EntityType="Microsoft.OneNote.Api.User" />
+        <Singleton Name="me" Type="Microsoft.OneNote.Api.User" />
         <Singleton Name="myOrganization" Type="Microsoft.OneNote.Api.MyOrganization" />
-        <FunctionImport Name="GetCopyStatus" Function="Microsoft.OneNote.Api.GetCopyStatus" IncludeInServiceDocument="true" />
       </EntityContainer>
       <Annotations Target="Microsoft.OneNote.Api.OneNoteApi">
         <Annotation Term="Org.OData.Capabilities.V1.BatchSupported" Bool="false" />

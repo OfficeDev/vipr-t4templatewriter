@@ -7,6 +7,7 @@ private CustomT4Host host;
 private OdcmModel model;
 private CodeWriterObjC writer;
 private String prefix;
+private OdcmClass entity;
 
 private void InitFields(CustomT4Host Host)
 {
@@ -14,32 +15,372 @@ private void InitFields(CustomT4Host Host)
     model = host.CurrentModel;
     writer = (CodeWriterObjC) host.CodeWriter;
     prefix = writer.GetPrefix();
+    entity = host.CurrentType.AsOdcmClass();
+    
+    ObjCStringExtensions.EntityContainerName = (model.EntityContainer==null ? "" : model.EntityContainer.Name);
 }
 
-private void GenerateHeaderGuards()
+
+private void GenerateHeaderGuards(string fileName)
 {
-    string name = writer.GetOutputPath(host.TemplateName, host.CurrentTemplateType, host.CurrentType.Name);
+    
 #>
-#ifndef <#=name.ToUpper()#>_H
-#define <#=name.ToUpper()#>_H
+#ifndef <#=fileName.ToUpper()#>_H
+#define <#=fileName.ToUpper()#>_H
 <#+
 }
-
 
 private void GenerateInterfacePrologue(OdcmClass e)
 {
-    //string baseEntity = e.Base == null ? "MSOrcBaseEntity"
-    //                  : GetPrefix() + e.Base.Name.Substring(e.Base.Name.LastIndexOf(".") + 1);
-    string baseEntity = e.Base == null ? "MSOrcBaseEntity" : e.Base.Name;
+    string baseEntityName = e.Base == null ? "MSOrcBaseEntity" : e.Base.ToObjCInterface();
+    
 #>
-#import "<#=baseEntity#>.h"
+#import "<#=baseEntityName#>.h"
 
-/** Interface <#= e.Name.ToObjCInterface() #>
+/** Interface <#= e.ToObjCInterface() #>
  *
  */
-@interface <#=e.Name.ToObjCInterface()#> : <#=baseEntity#>
+@interface <#=e.ToObjCInterface()#> : <#=baseEntityName#>
 
 <#+
+}
+
+private void GenerateImplementationPrologue(OdcmClass e,string suffix="")
+{
+    string iName=e.ToObjCInterface() + suffix;
+#>
+
+/** Implementation for <#=iName  #>
+ *
+ */
+@implementation <#=iName #>
+
+<#+
+}
+
+private void GenerateMethodParameters(OdcmMethod method, string typeOverride=null)
+{
+    int i=0;
+    foreach (var p in method.Parameters) 
+    {
+        string parameterName=p.Name.ToObjCMethodSignatureParameter(method.Name,i);
+        string typeString= (typeOverride!=null && typeOverride!="")?typeOverride:
+                            p.Type.GetTypeReferenceString();
+        #><#=parameterName#>:(<#=typeString#>)<#=p.Name.ToObjCMethodParameter()#> <#+
+        i++;
+    }
+}
+
+private void GenerateCallbackParameter(string typeStr,bool firstParameter=false)
+{
+    #><#=firstParameter?"WithC":"c"#>allback:(void (^)(<#=typeStr#>, MSOrcError*))callback <#+
+}
+
+private void GenerateCallbackParameter(OdcmType type,bool firstParameter=false)
+{
+    GenerateCallbackParameter(type.GetTypeReferenceString(),firstParameter);
+}
+
+private void GenerateSetterImplementationsForProperties(OdcmClass entity)
+{
+    foreach(var prop in entity.Properties)
+    {
+#>
+/** Setter implementation for property <#= prop.Name.ToObjCProperty() #>
+ *
+ */
+- (void) <#=prop.GetSetterString()#>: (<#=prop.GetTypeReferenceString()#>) value {
+    _<#=prop.Name.ToObjCProperty()#> = value;
+    [self valueChanged<#=prop.IsBool()?"ForBool":(prop.IsInt()?"ForInt":"")#>:_<#=prop.Name.ToObjCProperty()#> forProperty:@"<#=prop.Name#>"];
+}
+       
+<#+    
+    } 
+}
+
+private void GenerateClassForwardDeclarations(OdcmClass entity)
+{
+    GenerateClassForwardDeclarations(entity.Properties,entity);
+}
+
+private void GenerateClassForwardDeclarationsForFetcher(OdcmClass entity)
+{
+    GenerateClassForwardDeclarations(entity.Properties,entity,true);
+}
+
+private void GenerateClassForwardDeclarationsForFetcherDerived(OdcmClass entity)
+{
+    foreach(var child in entity.Derived)
+    {
+#>
+@class <#=child.ToObjCInterface()#>Fetcher;	
+<#+
+    }
+}
+
+
+private void GenerateClassForwardDeclarationsForFetcherNavProps(OdcmClass entity)
+{
+    GenerateClassForwardDeclarations(entity.NavigationProperties(),entity,true);
+    
+    OutputUniqueStrings(entity.NavigationProperties(),null,
+    prop =>
+    {
+        if(prop.IsCollection() && prop.Type.IsFromOurNamespace())
+        {
+            return prop.Type.GetTypeString() + "Fetcher";
+        }
+        return null;
+    },
+    stringIn =>
+    {
+        return "@class " + stringIn + ";\n";
+    });
+}
+
+HashSet<string> GetUniqueStrings<T>(IEnumerable<T> elements, HashSet<T> exclusions, Func<T,string> stringGen )
+{
+    HashSet<string> uniqueStrings = new HashSet<string>();   
+    
+    foreach(var element in elements)
+    {
+        if(exclusions!=null && exclusions.Contains(element)) continue;
+        string uString=stringGen(element);
+        if(uString!=null) uniqueStrings.Add(uString);
+    }
+    
+    return uniqueStrings;
+}
+
+void OutputUniqueStrings<T>(IEnumerable<T> elements, HashSet<T> exclusions, Func<T,string> stringGen, Func<string,string> stringOut )
+{
+    foreach(var uString in GetUniqueStrings(elements,exclusions,stringGen))
+    {
+        string transformedUString=stringOut(uString);
+        if(transformedUString!=null) Write(transformedUString);
+    }
+}
+
+private void GenerateClassForwardDeclarations(IEnumerable<OdcmProperty> Properties, OdcmType exclusion=null, bool forFetcher=false)
+{
+    OutputUniqueStrings(Properties,null,
+        prop =>
+        {
+            if(prop.Type!=exclusion && prop.Type.IsFromOurNamespace())
+            {
+                return prop.Type.GetTypeString() + (forFetcher? (prop.IsCollection()?"CollectionFetcher":"Fetcher"):"");
+            }
+            return null;
+        },
+        stringIn =>
+        {
+            return "@class " + stringIn + ";\n";
+        });
+}
+
+
+private void GenerateActionMethodSignature(OdcmMethod action)
+{
+#>- (void)<#=action.GetMethodString() #><#+GenerateMethodParameters(action);#><#+GenerateCallbackParameter(action.ReturnType,action.Parameters.Count==0);#><#+   
+}
+
+private void GenerateActionMethodRawSignature(OdcmMethod action)
+{
+#>- (void)<#=action.GetMethodString() #>Raw<#+GenerateMethodParameters(action,"NSString *");#><#+GenerateCallbackParameter("NSString *",action.Parameters.Count==0);#><#+	
+}
+
+private void GenerateActionMethodRawCallPrologue(OdcmMethod method)
+{
+#><#=method.GetMethodString() #>Raw<#+
+   
+    int i=0;
+    foreach (var p in method.Parameters) 
+    {
+        string parameterName=p.Name.ToObjCMethodSignatureParameter(method.Name,i);
+        #><#=parameterName#>:<#=p.Name.ToObjCMethodParameter()#>String <#+
+        i++;
+    }
+#><#="callback".ToObjCMethodSignatureParameter(method.Name,i)#><#+
+}
+
+
+private void GenerateActionMethodDeclarations(OdcmClass entity)
+{
+
+    foreach(var action in entity.Actions())
+    {
+        if(!action.IsBoundToCollection)
+        {
+
+            GenerateActionMethodSignature(action);#>;
+<#+
+            if(!action.IsFunction())
+            {
+                GenerateActionMethodRawSignature(action);#>;
+<#+
+            }
+        }
+    }
+
+  
+}
+
+public void GenerateDictionaryFromParameters(string dicName, List<OdcmParameter> parameters)
+{
+    if(!parameters.Any())
+    {
+#>
+NSDictionary *<#=dicName#> = [[NSDictionary alloc] init];
+<#+
+    }
+    else
+    {
+#>
+NSDictionary *<#=dicName#> = [[NSDictionary alloc] initWithObjectsAndKeys: <#+
+
+        foreach (var param in parameters)
+        {
+            if(param.GetTypeString() == "bool")
+            {
+#> <#=param.Name.ToObjCMethodParameter()#>?@"true":@"false",<#+                
+            }
+            else if(param.GetTypeString() == "int")
+            {
+#> <#=writer.NewStringFromIntegerVariable(param.Name.ToObjCMethodParameter())#>,<#+                
+            }
+            else
+            {
+#> <#=param.Name.ToObjCMethodParameter()#>,<#+
+            }
+#> @"<#=param.Name#>",<#+
+        }
+    
+#> nil ];
+<#+
+    }
+    
+}
+
+public void GenerateJsonStringsFromParameters(List<OdcmParameter> parameters)
+{
+    foreach (var param in parameters)
+    {
+#>NSString *<#=param.Name.ToObjCMethodParameter()#>String = [self.resolver.jsonSerializer serialize:<#+
+            if(param.GetTypeString() == "bool")
+            {
+#>(<#=param.Name.ToObjCMethodParameter()#>?@"true":@"false") <#+                
+            }
+            else if(param.GetTypeString() == "int")
+            { 
+#><#=writer.NewStringFromIntegerVariable(param.Name.ToObjCMethodParameter())#> <#+             
+            }
+            else
+            {
+#><#=param.Name.ToObjCMethodParameter()#> <#+ 
+            }
+#>property:@"<#=param.Name#>"];
+<#+
+    }
+    
+}
+
+private void GenerateActionMethodImplementation(OdcmMethod action)
+{
+    var clazz = action.ReturnType.IsComplex() ? "[" + action.ReturnType.GetTypeString() + " class]" : "nil";
+    
+    GenerateActionMethodSignature(action);#>{
+
+<#+ if (action.IsFunction()) { #>
+
+	id<MSOrcRequest> request = [self.resolver createOrcRequest];
+	<#+GenerateDictionaryFromParameters("params",action.Parameters);#>
+	
+	NSString *parameters = [MSOrcBaseContainer getFunctionParameters:params];
+
+	[request.url appendPathComponent:[[NSString alloc] initWithFormat:@"<#=action.Name#>(%@)",parameters]];
+	[request setVerb:HTTP_VERB_POST];
+
+	return [super orcExecuteRequest:request callback:^(id<MSOrcResponse> response, MSOrcError *e) {
+       
+        if (e == nil) {
+
+            <#=action.ReturnType.GetTypeReferenceString()#> result = (<#=action.ReturnType.GetTypeReferenceString()#>)[super.resolver.jsonSerializer deserialize:response.data asClass:<#=clazz#>];
+            callback(result, e);
+        }
+        else {
+
+            callback(<#=action.ReturnType.IsComplex() ? "nil" : " response.status"#>, e);
+        }
+        
+    }];
+    
+<#+ }else{ #>
+
+    <#+GenerateJsonStringsFromParameters(action.Parameters);#>
+    return [self <#+ GenerateActionMethodRawCallPrologue(action);#>:^(NSString *returnValue, MSOrcError *e) {
+       
+       if (e == nil) {
+            <#=action.ReturnType.GetTypeReferenceString()#> result = (<#=action.ReturnType.GetTypeReferenceString()#>)[super.resolver.jsonSerializer deserialize:[returnValue dataUsingEncoding:NSUTF8StringEncoding] asClass:<#=clazz#>];
+            callback(result, e);
+        } 
+        else {
+
+            callback(<#=action.ReturnType.IsComplex() ? "nil" : "(int)[returnValue integerValue]"#>, e);
+        }
+    }];    
+    
+<#+ } #>
+        
+}
+
+<#+
+}
+
+private void GenerateActionMethodRawImplementation(OdcmMethod action)
+{
+    GenerateActionMethodRawSignature(action);#>{
+        
+    id<MSOrcRequest> request = [super.resolver createOrcRequest];
+    
+    <#+GenerateJsonStringsFromParameters(action.Parameters);#>
+    
+    [request setVerb:HTTP_VERB_POST];
+	 <#+ if (ConfigurationService.Settings.AllowShortActions) { #>    
+	[request.url appendPathComponent:@"<#= action.Name#>"];
+        <#+ } else { #>
+	[request.url appendPathComponent:@"<#= action.FullName#>"];
+     <#+}#>
+	
+    return [super orcExecuteRequest:request callback:^(id<MSOrcResponse> response, MSOrcError *e) {
+        
+		if (e == nil) {
+            
+			callback([[NSString alloc] initWithData:response.data encoding:NSUTF8StringEncoding], e);
+        }
+        else {
+
+            callback([[NSString alloc] initWithFormat:@"%d", response.status], e);
+        }
+    }];
+    
+    }
+<#+
+}
+
+
+private void GenerateActionMethodImplementations(OdcmClass entity)
+{
+    foreach(var action in entity.Actions())
+    {
+        if(!action.IsBoundToCollection)
+        {
+            GenerateActionMethodImplementation(action);
+            if(!action.IsFunction())
+            {
+                GenerateActionMethodRawImplementation(action);
+            }
+        }
+    }
 }
 
 
@@ -49,7 +390,7 @@ private void GeneratePropertyDeclaration(OdcmProperty prop)
 /** Property <#= prop.Name.ToObjCProperty() #>
  *
  */
-@property (nonatomic, strong,<#=prop.IsComplex()?" copy,":""#> setter=<#=prop.Name.ToObjCSetter()#>, getter=<#=prop.Name.ToObjCGetter()#>) <#=prop.GetFullType()#><#=prop.IsComplex()?"*":""#> <#=prop.Name.ToObjCProperty()#>;
+@property (nonatomic, <#=prop.IsComplex()?" copy,":""#> setter=<#=prop.GetSetterString()#>:, getter=<#=prop.GetGetterString()#>) <#=prop.GetTypeReferenceString()#> <#=prop.Name.ToObjCProperty()#>;
 
 <#+    
 }
