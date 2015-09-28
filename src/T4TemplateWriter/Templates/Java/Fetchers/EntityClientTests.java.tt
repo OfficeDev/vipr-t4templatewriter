@@ -7,7 +7,6 @@ OdcmModel model         = host.CurrentModel;
 CodeWriterJava writer   = (CodeWriterJava) host.CodeWriter;
 
 Node modelGraph = writer.GetModelGraph(model);
-List<SubElementDefinition> subElements = writer.GetSubElementDefinitions(modelGraph);
 #>
 
 <#=writer.WriteHeader()#>
@@ -21,13 +20,14 @@ import com.microsoft.office365.test.integration.framework.*;
 import com.microsoft.office365.test.integration.framework.objectFiller.*;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * The type <#=model.GetEntityContainer()#>ClientTests.
  */
 public class <#=model.GetEntityContainer().ToUpperFirstChar()#>ClientTests extends TestGroup {
     private ObjectFiller mFiller;
-    private List<String> mNotSupportedTests;
+    private Set<String> mNotSupportedTests;
 <#
     var testsList = new Dictionary<String, String>();
     var sampleEntities = new Dictionary<String, Node>();
@@ -187,7 +187,7 @@ public class <#=model.GetEntityContainer().ToUpperFirstChar()#>ClientTests exten
         super("<#=model.GetEntityContainer().ToUpperFirstChar()#> Tests");
     }
 
-    public <#=model.GetEntityContainer().ToUpperFirstChar()#>ClientTests(List<PropertyFilter> filters, List<String> notSupportedTests ){
+    public <#=model.GetEntityContainer().ToUpperFirstChar()#>ClientTests(List<PropertyFilter> filters, Set<String> notSupportedTests ){
         this();
         mFiller = new ObjectFiller();
         mNotSupportedTests = notSupportedTests;
