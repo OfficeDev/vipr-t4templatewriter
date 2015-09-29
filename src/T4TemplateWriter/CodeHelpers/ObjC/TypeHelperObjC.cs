@@ -13,7 +13,12 @@ namespace Vipr.T4TemplateWriter.CodeHelpers.ObjC
 	public static class TypeHelperObjC
 	{
         public static string Prefix = "";
-
+        
+        private static HashSet<string> primitiveTypes = new HashSet<string>()
+        {
+            "int","float","double","bool"
+        };
+        
 		public static string GetTypeString(this OdcmType type)
         {
             
@@ -27,6 +32,10 @@ namespace Vipr.T4TemplateWriter.CodeHelpers.ObjC
 				return "int";
 			case "Int64":
 				return "int";
+            case "Single":
+                return "float";
+            case "Double":
+                return "double";
 			case "Guid":
 				return "NSString";
 			case "DateTimeOffset":
@@ -110,7 +119,7 @@ namespace Vipr.T4TemplateWriter.CodeHelpers.ObjC
         public static bool IsComplex(this OdcmType type)
         {
             string t = GetTypeString(type);
-            return !(t == "int" || t == "bool" || t == "Byte");
+            return !(primitiveTypes.Contains(t) || t == "Byte" || type is OdcmEnum);
         }
 
 		public static bool IsComplex(this OdcmProperty property)
@@ -131,7 +140,7 @@ namespace Vipr.T4TemplateWriter.CodeHelpers.ObjC
 		public static bool IsSystem(this OdcmType type)
 		{
 			string t = GetTypeString(type);
-			return (t == "int" || t == "bool" || t == "Byte" || t == "NSString" || t == "NSDate");
+			return (primitiveTypes.Contains(t) || t == "Byte" || t == "NSString" || t == "NSDate");
 		}
 
 		public static bool IsEnum(this OdcmProperty property)
@@ -147,6 +156,16 @@ namespace Vipr.T4TemplateWriter.CodeHelpers.ObjC
         public static bool IsInt(this OdcmProperty property)
 		{
 			return GetTypeString(property.Type) == "int";
+		}
+        
+        public static bool IsFloat(this OdcmProperty property)
+		{
+			return GetTypeString(property.Type) == "float";
+		}
+
+        public static bool IsDouble(this OdcmProperty property)
+		{
+			return GetTypeString(property.Type) == "double";
 		}
         
         public static string ToObjCInterface(this OdcmClass e)
