@@ -91,12 +91,54 @@ private void GenerateSetterImplementationsForProperties(OdcmClass entity)
  */
 - (void) <#=prop.GetSetterString()#>: (<#=prop.GetTypeReferenceString()#>) value {
     _<#=prop.Name.ToObjCProperty()#> = value;
-    [self valueChanged<#=prop.IsBool()?"ForBool":(prop.IsInt()?"ForInt":"")#>:_<#=prop.Name.ToObjCProperty()#> forProperty:@"<#=prop.Name#>"];
+    [self valueChanged<#+
+        if(prop.IsBool())
+        {
+            Write("ForBool");
+        }
+        else if(prop.IsInt() || prop.Type is OdcmEnum)
+        {
+            Write("ForInt");
+        }
+        else if(prop.IsDouble())
+        {
+            Write("ForDouble");
+        }
+        else if(prop.IsFloat())
+        {
+            Write("ForFloat");
+        }
+    
+    #>:_<#=prop.Name.ToObjCProperty()#> forProperty:@"<#=prop.Name#>"];
 }
        
 <#+    
     } 
 }
+
+HashSet<string> GetUniqueStrings<T>(IEnumerable<T> elements, HashSet<T> exclusions, Func<T,string> stringGen )
+{
+    HashSet<string> uniqueStrings = new HashSet<string>();   
+    
+    foreach(var element in elements)
+    {
+        if(exclusions!=null && exclusions.Contains(element)) continue;
+        string uString=stringGen(element);
+        if(uString!=null) uniqueStrings.Add(uString);
+    }
+    
+    return uniqueStrings;
+}
+
+void OutputUniqueStrings<T>(IEnumerable<T> elements, HashSet<T> exclusions, Func<T,string> stringGen, Func<string,string> stringOut )
+{
+    foreach(var uString in GetUniqueStrings(elements,exclusions,stringGen))
+    {
+        string transformedUString=stringOut(uString);
+        if(transformedUString!=null) Write(transformedUString);
+    }
+}
+
 
 private void GenerateClassForwardDeclarations(OdcmClass entity)
 {
@@ -138,35 +180,13 @@ private void GenerateClassForwardDeclarationsForFetcherNavProps(OdcmClass entity
     });
 }
 
-HashSet<string> GetUniqueStrings<T>(IEnumerable<T> elements, HashSet<T> exclusions, Func<T,string> stringGen )
-{
-    HashSet<string> uniqueStrings = new HashSet<string>();   
-    
-    foreach(var element in elements)
-    {
-        if(exclusions!=null && exclusions.Contains(element)) continue;
-        string uString=stringGen(element);
-        if(uString!=null) uniqueStrings.Add(uString);
-    }
-    
-    return uniqueStrings;
-}
-
-void OutputUniqueStrings<T>(IEnumerable<T> elements, HashSet<T> exclusions, Func<T,string> stringGen, Func<string,string> stringOut )
-{
-    foreach(var uString in GetUniqueStrings(elements,exclusions,stringGen))
-    {
-        string transformedUString=stringOut(uString);
-        if(transformedUString!=null) Write(transformedUString);
-    }
-}
 
 private void GenerateClassForwardDeclarations(IEnumerable<OdcmProperty> Properties, OdcmType exclusion=null, bool forFetcher=false)
 {
     OutputUniqueStrings(Properties,null,
         prop =>
         {
-            if(prop.Type!=exclusion && prop.Type.IsFromOurNamespace())
+            if(prop.Type!=exclusion && prop.Type.IsFromOurNamespace() && prop.Type.IsComplex())
             {
                 return prop.Type.GetTypeString() + (forFetcher? (prop.IsCollection()?"CollectionFetcher":"Fetcher"):"");
             }
@@ -178,6 +198,27 @@ private void GenerateClassForwardDeclarations(IEnumerable<OdcmProperty> Properti
         });
 }
 
+private void GenerateImportsForEnums(OdcmClass entity)
+{
+    GenerateImportsForEnums(entity.Properties);
+}
+
+private void GenerateImportsForEnums(IEnumerable<OdcmProperty> Properties)
+{
+    OutputUniqueStrings(Properties,null,
+        prop =>
+        {
+            if(prop.Type is OdcmEnum && prop.Type.IsFromOurNamespace())
+            {
+                return prop.Type.GetTypeString();
+            }
+            return null;
+        },
+        stringIn =>
+        {
+            return "#import \"" + stringIn + ".h\"\n";
+        });
+}
 
 private void GenerateActionMethodSignature(OdcmMethod action)
 {
@@ -225,18 +266,42 @@ private void GenerateActionMethodDeclarations(OdcmClass entity)
   
 }
 
-public void GenerateDictionaryFromParameters(string dicName, List<OdcmParameter> parameters)
+public void GenerateDictionaryFromParameters(string dicName, List<OdcmParameter> parameters,bool toArray=false)
 {
     if(!parameters.Any())
     {
+        
+        if(toArray)
+        {
+#>
+NSArray *<#=dicName#> = [[NSArray alloc] init];
+<#+            
+        }
+        else
+        {
 #>
 NSDictionary *<#=dicName#> = [[NSDictionary alloc] init];
-<#+
+<#+            
+        }
+        
     }
     else
     {
+
+        if(toArray)
+        {
+#>
+NSArray *<#=dicName#> = [[NSArray alloc] initWithObjects: [[NSDictionary alloc] initWithObjectsAndKeys: <#+
+            
+        }
+        else
+        {
 #>
 NSDictionary *<#=dicName#> = [[NSDictionary alloc] initWithObjectsAndKeys: <#+
+          
+        }
+        
+
 
         foreach (var param in parameters)
         {
@@ -255,7 +320,7 @@ NSDictionary *<#=dicName#> = [[NSDictionary alloc] initWithObjectsAndKeys: <#+
 #> @"<#=param.Name#>",<#+
         }
     
-#> nil ];
+#> nil ] <#=toArray?", nil]":""#>;
 <#+
     }
     
@@ -283,6 +348,18 @@ public void GenerateJsonStringsFromParameters(List<OdcmParameter> parameters)
     }
     
 }
+
+public void GenerateJsonPayloadFromParameters(List<OdcmParameter> parameters)
+{
+    
+    GenerateDictionaryFromParameters("parameters",parameters,true);
+
+#>
+    NSData* payload = [[MSOrcBaseContainer generatePayloadWithParameters:parameters dependencyResolver:self.resolver] dataUsingEncoding:NSUTF8StringEncoding];
+    [request setContent:payload];
+<#+
+}
+
 
 private void GenerateActionMethodImplementation(OdcmMethod action)
 {
@@ -342,7 +419,7 @@ private void GenerateActionMethodRawImplementation(OdcmMethod action)
         
     id<MSOrcRequest> request = [super.resolver createOrcRequest];
     
-    <#+GenerateJsonStringsFromParameters(action.Parameters);#>
+    <#+GenerateJsonPayloadFromParameters(action.Parameters);#>
     
     [request setVerb:HTTP_VERB_POST];
 	 <#+ if (ConfigurationService.Settings.AllowShortActions) { #>    

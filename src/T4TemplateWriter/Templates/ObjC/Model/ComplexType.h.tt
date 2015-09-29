@@ -9,6 +9,7 @@
 <#
 
 GenerateClassForwardDeclarations(entity);
+GenerateImportsForEnums(entity);
 
 GenerateInterfacePrologue(entity);
 
