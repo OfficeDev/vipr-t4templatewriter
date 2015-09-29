@@ -355,13 +355,6 @@
         <Parameter Name="groupId" Type="Edm.String" Unicode="false" />
         <ReturnType Type="Microsoft.OneNote.Api.CopyStatusModel" />
       </Action>
-      <Action Name="ExportNotebook" IsBound="true">
-        <Parameter Name="bindingParameter" Type="Microsoft.OneNote.Api.Notebook" />
-      </Action>
-      <Action Name="ImportNotebook" IsBound="true">
-        <Parameter Name="bindingParameter" Type="Collection(Microsoft.OneNote.Api.Notebook)" />
-        <ReturnType Type="Microsoft.OneNote.Api.CopyStatusModel" />
-      </Action>
       <EntityContainer Name="OneNote">
         <EntitySet Name="users" EntityType="Microsoft.OneNote.Api.User" />
         <Singleton Name="me" Type="Microsoft.OneNote.Api.User" />

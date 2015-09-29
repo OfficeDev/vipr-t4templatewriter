@@ -30,7 +30,7 @@ GenerateClassForwardDeclarationsForFetcherNavProps(entity);
  */
 @interface <#=fetcherName#> : <#=baseEntityName#>
 
-@property (copy, nonatomic, readonly) <#=entityName#>Operations *operations;
+@property (copy, nonatomic, readonly) <#=entityName#>Operations *<#=(entityName+"Operations").ToObjCProperty()#>;
 
 - (instancetype)initWithUrl:(NSString*)urlComponent parent:(id<MSOrcExecutable>)parent;
 - (void)readWithCallback:(void (^)(<#=entityName#> *, MSOrcError *))callback;

@@ -96,7 +96,7 @@ private void GenerateSetterImplementationsForProperties(OdcmClass entity)
         {
             Write("ForBool");
         }
-        else if(prop.IsInt() || prop.Type is OdcmEnum)
+        else if(prop.IsInt() || (prop.Type is OdcmEnum))
         {
             Write("ForInt");
         }
