@@ -9,13 +9,13 @@ string fetcherName = entityName + "Fetcher";
 
 @implementation <#=fetcherName#>
 
-@synthesize operations = _operations;
+@synthesize <#=(entityName+"Operations").ToObjCProperty()#> = _<#=(entityName+"Operations").ToObjCProperty()#>;
 
 - (instancetype)initWithUrl:(NSString *)urlComponent parent:(id<MSOrcExecutable>)parent {
 
     if (self = [super initWithUrl:urlComponent parent:parent asClass:[<#=entityName#> class]]) {
 
-		_operations = [[<#=entityName#>Operations alloc] initOperationWithUrl:urlComponent parent:parent];
+		_<#=(entityName+"Operations").ToObjCProperty()#> = [[<#=entityName#>Operations alloc] initOperationWithUrl:urlComponent parent:parent];
     }
 
     return self;
@@ -75,7 +75,8 @@ foreach(var prop in entity.NavigationProperties())
 
 - (<#=prop.GetTypeString(true)#>Fetcher *)<#=prop.GetGetterString()#>ById:(NSString *)identifier {
 
-    return [[[<#=prop.GetTypeString(true)#>CollectionFetcher alloc] initWithUrl:@"<#=prop.Name#>" parent:self asClass:[<#=prop.GetTypeString(true)#> class]] getById:identifier];
+    return [[<#=prop.GetTypeString(true)#>Fetcher alloc] initWithUrl:[[NSString alloc] initWithFormat:@"('%@')" ,identifier] parent:self];
+
 }
 <#
 	}
