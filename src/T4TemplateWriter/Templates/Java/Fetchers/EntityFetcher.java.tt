@@ -19,7 +19,6 @@ import com.microsoft.services.orc.core.Readable;
 
 /**
  * The type  <#=entity.Name.ToUpperFirstChar()#>
- .
  */
 public class <#=entity.Name.ToUpperFirstChar()#>Fetcher extends <#=className#><<#=entity.Name.ToUpperFirstChar()#>,<#=entity.Name.ToUpperFirstChar()#>Operations> 
                                      implements Readable<<#=entity.Name.ToUpperFirstChar()#>> {
