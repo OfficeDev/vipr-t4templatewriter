@@ -6,7 +6,6 @@ CustomT4Host host       = (CustomT4Host) Host;
 OdcmModel model         = host.CurrentModel;
 CodeWriterJava writer   = (CodeWriterJava) host.CodeWriter;
 #>
-
 <#=writer.WriteHeader()#>
 
 package <#=model.ODataPackageNamespace()#>;
