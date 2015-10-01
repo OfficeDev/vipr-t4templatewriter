@@ -8,6 +8,7 @@
         </Key>
         <Property Name="id" Type="Edm.String" Nullable="false" />
         <Property Name="driveType" Type="Edm.String" />
+        <Property Name="disabled" Type="Edm.Boolean" />
         <Property Name="owner" Type="oneDrive.identitySet" />
         <Property Name="quota" Type="oneDrive.quota" />
         <NavigationProperty Name="items" Type="Collection(oneDrive.item)" ContainsTarget="true" />
@@ -48,6 +49,7 @@
         <Property Name="name" Type="Edm.String" />
         <Property Name="parentReference" Type="oneDrive.itemReference" />
         <Property Name="size" Type="Edm.Int64" />
+        <Property Name="webDavUrl" Type="Edm.String" />
         <Property Name="webUrl" Type="Edm.String" />
         <Property Name="audio" Type="oneDrive.audio" />
         <Property Name="deleted" Type="oneDrive.deleted" />
@@ -97,6 +99,7 @@
       <ComplexType Name="rawBlobInfo">
         <Property Name="blobContainers" Type="Collection(oneDrive.blobContainer)" />
         <Property Name="blobs" Type="Collection(oneDrive.blob)" />
+        <Property Name="userKeys" Type="Collection(Edm.String)" />
       </ComplexType>
       <ComplexType Name="uploadSession">
         <Property Name="uploadUrl" Type="Edm.String" />
@@ -160,6 +163,7 @@
         <Property Name="focalLength" Type="Edm.Double" />
         <Property Name="fNumber" Type="Edm.Double" />
         <Property Name="takenDateTime" Type="Edm.DateTimeOffset" />
+        <Property Name="iso" Type="Edm.Int32" />
       </ComplexType>
       <ComplexType Name="quota">
         <Property Name="deleted" Type="Edm.Int64" />
@@ -207,7 +211,6 @@
         <Property Name="app" Type="oneDrive.identity" />
         <Property Name="viewUrl" Type="Edm.String" />
         <Property Name="editUrl" Type="Edm.String" />
-        <Property Name="postParameters" Type="Edm.String" />
         <Property Name="viewPostParameters" Type="Edm.String" />
         <Property Name="editPostParameters" Type="Edm.String" />
       </ComplexType>
@@ -232,16 +235,21 @@
         <Property Name="id" Type="Edm.Guid" />
         <Property Name="index" Type="Edm.Int32" />
         <Property Name="partitionId" Type="Edm.Int16" />
+        <Property Name="storeType" Type="Edm.Byte" />
         <Property Name="type" Type="Edm.Byte" />
       </ComplexType>
       <ComplexType Name="blob">
         <Property Name="containerIndex" Type="Edm.Int32" />
         <Property Name="hash" Type="Edm.String" />
+        <Property Name="height" Type="Edm.Int32" />
         <Property Name="id" Type="Edm.Guid" />
         <Property Name="integrityState" Type="Edm.String" />
+        <Property Name="mimeType" Type="Edm.String" />
         <Property Name="name" Type="Edm.String" />
+        <Property Name="version" Type="Edm.Int32" />
+        <Property Name="width" Type="Edm.Int32" />
       </ComplexType>
-      <EntityContainer Name="oneDrive">
+      <EntityContainer Name="">
         <EntitySet Name="drives" EntityType="oneDrive.drive" />
         <EntitySet Name="shares" EntityType="oneDrive.share" />
         <EntitySet Name="sets" EntityType="oneDrive.set" />
@@ -256,11 +264,11 @@
     </Schema>
     <Schema Namespace="view" xmlns="http://docs.oasis-open.org/odata/ns/edm">
       <Function Name="allPhotos" IsBound="true">
-        <Parameter Name="bindingParameter" Type="oneDrive.drive" Nullable="false" />
+        <Parameter Name="bindingParameter" Type="oneDrive.item" Nullable="false" />
         <ReturnType Type="Collection(oneDrive.item)" Nullable="false" />
       </Function>
       <Function Name="allPhotos" IsBound="true">
-        <Parameter Name="bindingParameter" Type="oneDrive.item" Nullable="false" />
+        <Parameter Name="bindingParameter" Type="oneDrive.drive" Nullable="false" />
         <ReturnType Type="Collection(oneDrive.item)" Nullable="false" />
       </Function>
       <Function Name="changes" IsBound="true">
@@ -287,11 +295,11 @@
     <Schema Namespace="action" xmlns="http://docs.oasis-open.org/odata/ns/edm">
       <Action Name="invite" IsBound="true">
         <Parameter Name="bindingParameter" Type="oneDrive.item" Nullable="false" />
-        <Parameter Name="requireSignIn" Type="Edm.Boolean" />
-        <Parameter Name="message" Type="Edm.String" />
-        <Parameter Name="roles" Type="Collection(Edm.String)" />
         <Parameter Name="recipients" Type="Collection(oneDrive.recipients)" Nullable="false" />
+        <Parameter Name="message" Type="Edm.String" />
+        <Parameter Name="requireSignIn" Type="Edm.Boolean" />
         <Parameter Name="sendInvitation" Type="Edm.Boolean" />
+        <Parameter Name="roles" Type="Collection(Edm.String)" />
         <ReturnType Type="Collection(oneDrive.permission)" Nullable="false" />
       </Action>
       <Action Name="copy" IsBound="true">

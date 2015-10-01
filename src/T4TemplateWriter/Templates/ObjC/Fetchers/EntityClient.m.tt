@@ -6,7 +6,6 @@ var entityName = prefix  + "Client";
 #>
 #import "<#=prefix#>Fetchers.h"
 
-<#=writer.GetImplementationDoc(prefix + "Client")#>
 @implementation <#=entityName#>
 
 - (instancetype)initWithUrl:(NSString *)url dependencyResolver:(id<MSOrcDependencyResolver>)resolver {
