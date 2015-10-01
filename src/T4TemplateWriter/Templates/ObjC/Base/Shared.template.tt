@@ -1,7 +1,57 @@
-﻿<#
-CustomT4Host host         = (CustomT4Host) Host;
-OdcmModel model           = host.CurrentModel;
-CodeWriterObjC writer     = (CodeWriterObjC) host.CodeWriter;
-String prefix             = writer.GetPrefix();
-#>
+﻿<# InitFields((CustomT4Host) Host); #>
 <#=writer.WriteHeader()#>
+
+<#+
+
+private CustomT4Host host;
+private OdcmModel model;
+private CodeWriterObjC writer;
+private String prefix;
+
+private void InitFields(CustomT4Host Host)
+{
+    host = Host;
+    model = host.CurrentModel;
+    writer = (CodeWriterObjC) host.CodeWriter;
+    prefix = writer.GetPrefix();
+}
+
+private void GenerateHeaderGuards()
+{
+    string name = writer.GetOutputPath(host.TemplateName, host.CurrentTemplateType, host.CurrentType.Name);
+#>
+#ifndef <#=name.ToUpper()#>_H
+#define <#=name.ToUpper()#>_H
+<#+
+}
+
+
+private void GenerateInterfacePrologue(OdcmClass e)
+{
+    //string baseEntity = e.Base == null ? "MSOrcBaseEntity"
+    //                  : GetPrefix() + e.Base.Name.Substring(e.Base.Name.LastIndexOf(".") + 1);
+    string baseEntity = e.Base == null ? "MSOrcBaseEntity" : e.Base.Name;
+#>
+#import "<#=baseEntity#>.h"
+
+/** Interface <#= e.Name.ToObjCInterface() #>
+ *
+ */
+@interface <#=e.Name.ToObjCInterface()#> : <#=baseEntity#>
+
+<#+
+}
+
+
+private void GeneratePropertyDeclaration(OdcmProperty prop)
+{
+#>
+/** Property <#= prop.Name.ToObjCProperty() #>
+ *
+ */
+@property (nonatomic, strong,<#=prop.IsComplex()?" copy,":""#> setter=<#=prop.Name.ToObjCSetter()#>, getter=<#=prop.Name.ToObjCGetter()#>) <#=prop.GetFullType()#><#=prop.IsComplex()?"*":""#> <#=prop.Name.ToObjCProperty()#>;
+
+<#+    
+}
+
+#>

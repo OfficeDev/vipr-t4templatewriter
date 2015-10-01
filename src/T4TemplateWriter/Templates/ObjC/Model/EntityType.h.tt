@@ -1,6 +1,8 @@
 ﻿<#@ template debug="true" hostspecific="true" language="C#" #>
 <#@ include file="Shared.template.tt"#>
 
+<# GenerateHeaderGuards(); #>
+
 <#
 var entity = host.CurrentType.AsOdcmClass();
 
@@ -37,35 +39,17 @@ if(classes.Any()){
 <#=imp#>
 <#
 	}
-#>
-<#=writer.GetInterfaceLine(entity)#>
 
-<#
+GenerateInterfacePrologue(entity);
 
 foreach(var prop in entity.Properties)
 {
-	if(prop.Type is OdcmEnum && !prop.IsCollection){
-
-		string getterName =  Char.ToLowerInvariant(prop.Name[0]) + prop.Name.Substring(1);
-		string setterName =  Char.ToUpperInvariant(prop.Name[0]) + prop.Name.Substring(1);
-		var propertyString = string.Format(" (nonatomic, getter={2}, setter=set{3}:) {0} {1}", prop.GetFullType(), writer.GetName(prop.Name),getterName,setterName);
-
-#>
-@property <#=propertyString#>;
-- (void)set<#=prop.Name#>String:(NSString *)value;
-<#
-	}
-	else
-	{
-	string getterName =  Char.ToLowerInvariant(prop.Name[0]) + prop.Name.Substring(1);
-	string setterName =  Char.ToUpperInvariant(prop.Name[0]) + prop.Name.Substring(1);
-	var propertyType = prop.IsComplex() ? string.Format("(copy, nonatomic, readwrite, getter={0}, setter=set{1}:) ", getterName, setterName) : string.Format("(nonatomic, getter={0}, setter=set{1}:) ", getterName, setterName);
-#>
-@property <#=propertyType + prop.ToPropertyString()#>;
-<#			
-    }
+    GeneratePropertyDeclaration(prop);
 }
+
 
 #>
 
 @end
+
+#endif

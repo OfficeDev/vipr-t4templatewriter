@@ -7,7 +7,7 @@ var entity = host.CurrentType.AsOdcmClass();
 
 #import "<#=prefix#>Models.h"
 
-<#=writer.GetImplementationDoc(prefix + entity.Name)#>
+
 @implementation <#=prefix + entity.Name#>	
 
 @synthesize odataType = _odataType;
@@ -46,7 +46,7 @@ foreach(var prop in entity.Properties)
 
 		var enumProp = host.CurrentModel.GetEnumTypes().First(e=> e.Name == prop.Type.Name);
 #>
-- (void)set<#=prop.Name#>String:(NSString *)value {
+- (void)<#=FixSetterName(prop.Name)#>String:(NSString *)value {
 <#
 		for(var i=1; i <= enumProp.Members.Count; i++)
 		{
@@ -66,10 +66,10 @@ foreach(var prop in entity.Properties)
 }
 <#
 	}else{
-    string setterName =  Char.ToUpperInvariant(prop.Name[0]) + prop.Name.Substring(1);
+    
     #>
 
-- (void)set<#=setterName#>:(<#=prop.ToSetterTypeString()#>) <#=writer.GetName(prop.GetToLowerFirstCharName())#> {
+- (void)<#=FixSetterName(prop.Name)#>:(<#=prop.ToSetterTypeString()#>) <#=writer.GetName(prop.GetToLowerFirstCharName())#> {
     _<#=writer.GetName(prop.GetToLowerFirstCharName())#> = <#=writer.GetName(prop.GetToLowerFirstCharName())#>;
 <#
     if(prop.Type.Name == "Int32" || prop.Type.Name == "Int64" ){

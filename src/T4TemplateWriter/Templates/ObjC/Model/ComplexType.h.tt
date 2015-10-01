@@ -43,11 +43,11 @@ if(classes.Any()){
 
 foreach(var prop in entity.Properties)
 {
-	if(prop.Type is OdcmEnum && !prop.IsCollection){
+	string getterName =  FixGetterName(prop.Name);
+	string setterName =  FixSetterName(prop.Name);
 
-		string getterName =  Char.ToLowerInvariant(prop.Name[0]) + prop.Name.Substring(1);
-		string setterName =  Char.ToUpperInvariant(prop.Name[0]) + prop.Name.Substring(1);
-		var propertyString = string.Format(" (nonatomic, getter={2}, setter=set{3}:) {0} {1}", prop.GetFullType(), writer.GetName(prop.Name),getterName,setterName);
+	if(prop.Type is OdcmEnum && !prop.IsCollection){
+		var propertyString = string.Format(" (nonatomic, getter={2}, setter={3}:) {0} {1}", prop.GetFullType(), writer.GetName(prop.Name),getterName,setterName);
 #>
 @property <#=propertyString#>;
 - (void)set<#=prop.Name#>String:(NSString *)value;
@@ -55,10 +55,8 @@ foreach(var prop in entity.Properties)
 	}
 	else
 	{
-		string getterName =  Char.ToLowerInvariant(prop.Name[0]) + prop.Name.Substring(1);
-		string setterName =  Char.ToUpperInvariant(prop.Name[0]) + prop.Name.Substring(1);
-		var propertyType = prop.IsComplex() ? string.Format("(copy, nonatomic, readwrite, getter={0}, setter=set{1}:) ", getterName, setterName) 
-		: string.Format("(nonatomic, getter={0}, setter=set{1}:) ", getterName, setterName);
+		var propertyType = prop.IsComplex() ? string.Format("(copy, nonatomic, readwrite, getter={0}, setter={1}:) ", getterName, setterName) 
+		: string.Format("(nonatomic, getter={0}, setter={1}:) ", getterName, setterName);
 #>
 @property <#=propertyType + prop.ToPropertyString()#>;
 <#			

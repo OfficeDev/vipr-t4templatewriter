@@ -37,6 +37,8 @@ namespace Vipr.T4TemplateWriter.CodeHelpers.Java
                 case "Binary":
                 case "Stream":
                     return "byte[]";
+                case "Duration":
+                    return "org.joda.time.Period";
                 default:
                     return @type.Name.ToUpperFirstChar();
             }
@@ -44,22 +46,7 @@ namespace Vipr.T4TemplateWriter.CodeHelpers.Java
 
         public static string GetTypeString(this OdcmParameter parameter)
         {
-            switch (parameter.Type.Name)
-            {
-                case "Int32":
-                    return "Integer";
-                case "Int64":
-                    return "Long";
-                case "Guid":
-                    return "java.util.UUID";
-                case "DateTimeOffset":
-                    return "java.util.Calendar";
-                case "Binary":
-                case "Stream":
-                    return "byte[]";
-                default:
-                    return parameter.Type.Name;
-            }
+            return GetTypeString(parameter.Type);
         }
 
 

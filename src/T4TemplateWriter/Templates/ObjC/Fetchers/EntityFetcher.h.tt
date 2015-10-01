@@ -42,7 +42,7 @@ foreach(var propertyClass in classes)
 #>
 @class <#=prefix + entity.Name#>Operations;
 
-#import <core/core.h>
+#import <orc.h>
 #import "<#=prefix#>Models.h"
 
 <#=writer.GetHeaderDoc(entityName)#>
