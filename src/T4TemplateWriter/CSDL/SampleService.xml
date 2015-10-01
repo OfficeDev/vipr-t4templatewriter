@@ -30,7 +30,8 @@
 				<Property Name="DisplayName" Type="Edm.String" />
 				<Property Name="entityKey" Type="Edm.String" Nullable="false" />
 				<Property Name="nestedSampleEntity" Type="Microsoft.SampleService.SampleEntity" Nullable="false" />
-				<NavigationProperty Name="Navigations" Type="Collection(Microsoft.SampleService.AnotherEntity)" ContainsTarget="true" />
+        <Property Name="Content" Type="Edm.Stream" />
+        <NavigationProperty Name="Navigations" Type="Collection(Microsoft.SampleService.AnotherEntity)" ContainsTarget="true" />
 				<NavigationProperty Name="Items" Type="Collection(Microsoft.SampleService.Item)" ContainsTarget="true" />
 				<NavigationProperty Name="nestedSampleEntityCollection" Type="Collection(Microsoft.SampleService.SampleEntity)"/>
 			</EntityType>

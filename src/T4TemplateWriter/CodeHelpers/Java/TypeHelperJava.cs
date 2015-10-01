@@ -1,10 +1,8 @@
 // Copyright (c) Microsoft Open Technologies, Inc. All Rights Reserved.
 // Licensed under the MIT License. See LICENSE in the source repository root for license information.﻿
 
-using System;
 using System.Collections.Generic;
 using Vipr.T4TemplateWriter.Extensions;
-using Vipr.T4TemplateWriter.CodeHelpers;
 using Vipr.Core.CodeModel;
 
 namespace Vipr.T4TemplateWriter.CodeHelpers.Java
@@ -35,8 +33,9 @@ namespace Vipr.T4TemplateWriter.CodeHelpers.Java
                 case "DateTimeOffset":
                     return "java.util.Calendar";
                 case "Binary":
-                case "Stream":
                     return "byte[]";
+                case "Stream":
+                    return "ODataStream";
                 case "Duration":
                     return "org.joda.time.Period";
                 default:

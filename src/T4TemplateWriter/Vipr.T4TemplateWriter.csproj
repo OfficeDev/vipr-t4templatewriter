@@ -170,6 +170,7 @@
     <Content Include="CSDL\discovery_metadata.xml" />
     <Content Include="CSDL\MSGraphMetadata.xml" />
     <Content Include="CSDL\OneNoteMetadata.xml" />
+    <Content Include="CSDL\SampleService.xml" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
