@@ -92,11 +92,12 @@ private void GenerateSetterImplementationsForProperties(OdcmClass entity)
 - (void) <#=prop.GetSetterString()#>: (<#=prop.GetTypeReferenceString()#>) value {
     _<#=prop.Name.ToObjCProperty()#> = value;
     [self valueChanged<#+
+  
         if(prop.IsBool())
         {
             Write("ForBool");
         }
-        else if(prop.IsInt() || (prop.Type is OdcmEnum))
+        else if(prop.IsInt() || prop.IsEnum())
         {
             Write("ForInt");
         }
@@ -108,6 +109,7 @@ private void GenerateSetterImplementationsForProperties(OdcmClass entity)
         {
             Write("ForFloat");
         }
+        
     
     #>:_<#=prop.Name.ToObjCProperty()#> forProperty:@"<#=prop.Name#>"];
 }
@@ -208,7 +210,7 @@ private void GenerateImportsForEnums(IEnumerable<OdcmProperty> Properties)
     OutputUniqueStrings(Properties,null,
         prop =>
         {
-            if(prop.Type is OdcmEnum && prop.Type.IsFromOurNamespace())
+            if(prop.IsEnum() && prop.Type.IsFromOurNamespace())
             {
                 return prop.Type.GetTypeString();
             }

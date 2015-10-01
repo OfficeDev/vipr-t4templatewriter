@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # deps:
 #
@@ -78,7 +78,8 @@ function processMetadata
 	NamespaceOverride=""
 	PrimaryNamespaceName=""
 	EntityContainerName=""
-	
+	DeleteAndMoveTo=""
+    
 	source "${ConfigPath}"
 	
 	MetadataName="$EntityContainerName"
@@ -104,7 +105,41 @@ function processMetadata
 	
 	mono Vipr.exe "${OutFilePath}" --writer="Vipr.T4TemplateWriter" --outputPath="${SDK_TMP_OUT}" 
 	
-	mv -f "$SDK_TMP_OUT" "${SDK_OUT}/${MetadataName}"
+    
+    DestFolderName="${MetadataName}"
+    
+    if [ ! -z "$DeleteAndMoveTo" ]
+    then
+        DestFolderName="${DeleteAndMoveTo}"
+    fi
+    
+    
+    
+    for F in $(find "$SDK_TMP_OUT" -type f); 
+    do
+        InsidePath=${F#$SDK_TMP_OUT}
+        FileOutPath="${SDK_OUT}/${DestFolderName}${InsidePath}"
+        
+        mkdir -p $(dirname "$FileOutPath")
+        
+        if [ -e "$FileOutPath" ]
+        then
+            touch "${SDK_TMP_OUT}/__empty__"
+            
+            git merge-file -p --union "$F" "${SDK_TMP_OUT}/__empty__" "$FileOutPath" > "${SDK_TMP_OUT}/__cur_merge__"
+            
+            rm "$FileOutPath"
+            mv "${SDK_TMP_OUT}/__cur_merge__" "$FileOutPath"
+ 
+            
+            rm "${SDK_TMP_OUT}/__empty__"
+        else
+            mv "$F" "$FileOutPath"
+        fi
+    
+    done
+    
+    rm -rf "${SDK_TMP_OUT}"
 
 	cd "${SDK_OUT}/${MetadataName}"
 	ruby "${SCRIPT_PATH}/create_xcode_project.rb" "${MetadataName}" "${SDK_OUT}/${MetadataName}/${MetadataName}.xcodeproj" "`find . -regex '.*\.[hm]' -print0 | tr "\0" ";"`"
@@ -185,12 +220,16 @@ function processMetadata
 	ConfigPath="$1"
 	OutFilePath="$3"
 
+    DeleteAndMoveTo=""
 	EntityContainerName=""
 	
 	source "${ConfigPath}"
 	
-	MetadataName="$EntityContainerName"
-	
+    
+    if [ -z "$DeleteAndMoveTo" ]
+    then
+
+	MetadataName="$EntityContainerName"	
 	
 	cat >> "${SDK_BASE}/Office365.podspec" <<HEREDOC
 
@@ -201,6 +240,11 @@ function processMetadata
   end
 
 HEREDOC
+        
+    fi
+    
+    
+
 
 }
 

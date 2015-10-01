@@ -97,25 +97,6 @@ namespace Vipr.T4TemplateWriter.CodeHelpers.ObjC
             return property.Name.ToObjCProperty();
         }
         
-        ///
-        /// DE PRE CA TED !!!
-        /// 
-        public static string GetFullType(this OdcmProperty property)
-        {
-			if (property.IsCollection)
-				return  "NSMutableArray";
-			else
-                return property.Type.GetTypeString();
-		}
-
-        ///
-        /// DE PRE CA TED !!!
-        /// 
-		public static string GetFullType(this OdcmType type)
-        {
-			return GetTypeString(type);
-		}
-        
         public static bool IsComplex(this OdcmType type)
         {
             string t = GetTypeString(type);
@@ -145,7 +126,7 @@ namespace Vipr.T4TemplateWriter.CodeHelpers.ObjC
 
 		public static bool IsEnum(this OdcmProperty property)
 		{
-			return property.Type is OdcmEnum;
+			return !property.IsCollection() && property.Type is OdcmEnum;
 		}
         
         public static bool IsBool(this OdcmProperty property)
