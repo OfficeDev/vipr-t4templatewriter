@@ -48,8 +48,6 @@ namespace Vipr.T4TemplateWriter.CodeHelpers.Java
             return GetTypeString(parameter.Type);
         }
 
-
-
         public static string GetTypeString(this OdcmProperty property)
         {
             return GetTypeString(property.Type);
