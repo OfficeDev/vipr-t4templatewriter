@@ -64,6 +64,11 @@ namespace Vipr.T4TemplateWriter
             return odcmClass.Properties.WhereIsNavigation();
         }
 
+        public static IEnumerable<OdcmProperty> StreamProperties(this OdcmClass odcmClass)
+        {
+            return odcmClass.Properties.Where(x => x.Type.Name == "Stream");
+        }
+
         public static IEnumerable<OdcmProperty> WhereIsNavigation(this IEnumerable<OdcmProperty> odcmProperties,
             bool isNavigation = true)
         {
