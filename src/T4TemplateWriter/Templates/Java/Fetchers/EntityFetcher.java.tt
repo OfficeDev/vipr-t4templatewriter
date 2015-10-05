@@ -44,8 +44,8 @@ public class <#=entity.Name.ToUpperFirstChar()#>Fetcher extends <#=className#><<
         addCustomParameter(name, value);
         return this;
     }
-
-     /**
+	
+	/**
      * Add header.
      *
      * @param name the name
@@ -65,6 +65,22 @@ public class <#=entity.Name.ToUpperFirstChar()#>Fetcher extends <#=className#><<
 <#
 }
 #>
+
+    <#
+    foreach(var prop in entity.StreamProperties()){
+    #>
+
+	/**
+     * Gets <#=prop.Name.SplitCamelCase().ToLower()#>.
+     *
+     * @return the <#=prop.Name.SplitCamelCase().ToLower()#>
+     */
+    public OrcODataStreamFetcher get<#=prop.Name.ToUpperFirstChar()#>() {
+		return new OrcODataStreamFetcher(urlComponent, this, getResolver());
+    }
+
+	<#}#>
+
     <#
     foreach(var prop in entity.NavigationProperties()){
     if(prop.IsCollection()){
