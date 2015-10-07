@@ -26,9 +26,9 @@ string collectionFetcherName = entityName + "CollectionFetcher";
     }];
 }
 
-- (<#=prefix + entity.Name#>Fetcher *)getById:(NSString *)id {
+- (<#=prefix + entity.Name#>Fetcher *)getById:(NSString *)_id {
 
-    return [[<#=fetcherName#> alloc] initWithUrl:[[NSString alloc] initWithFormat:@"('%@')" ,id] parent:self];
+    return [[<#=fetcherName#> alloc] initWithUrl:[[NSString alloc] initWithFormat:@"('%@')" ,_id] parent:self];
 }
 
 - (<#=collectionFetcherName#> *)select:(NSString *)params {

@@ -7,12 +7,16 @@
 <# GenerateImplementationPrologue(entity); #>
 
 @synthesize odataType = _odataType;
+@synthesize $$$_$$$propertiesNamesMappings = _$$$_$$$propertiesNamesMappings;
 
 - (instancetype)init {
 
 	if (self = [super init]) {
 
 		_odataType = @"#<#=model.GetNamespace()#>.<#=entity.Name#>";
+        
+        <# SetPropertiesNamesMappings(entity); #>  
+        
 <#
 foreach(var prop in entity.Properties) {
 	
