@@ -47,7 +47,7 @@ cat > ${SDK_OUT}/Podfile  <<HEREDOC
 source 'https://github.com/Cocoapods/Specs.git'
 
 # target :default
-platform :ios, '7.0'
+platform :ios, '8.0'
 workspace 'all_services'
 
 HEREDOC
@@ -140,7 +140,33 @@ function processMetadata
     done
     
     rm -rf "${SDK_TMP_OUT}"
+    
+    MetadataNamePlusNS="MS${MetadataName}"
+    
+    HeaderGuard=$(echo "${MetadataNamePlusNS}" | tr '[:lower:]' '[:upper:]')_H
+    
+    cat > "${SDK_OUT}/${DestFolderName}/${MetadataNamePlusNS}.h" <<HEREDOC
 
+
+/*******************************************************************************
+ * Copyright (c) Microsoft Open Technologies, Inc.
+ * All Rights Reserved
+ * Licensed under the Apache License, Version 2.0.
+ * See License.txt in the project root for license information.
+ ******************************************************************************/
+
+#ifndef ${HeaderGuard}
+#define ${HeaderGuard}
+
+#import <${MetadataNamePlusNS}Fetchers.h>
+#import <${MetadataNamePlusNS}Models.h>
+
+#endif
+    
+HEREDOC
+    
+
+    
 	cd "${SDK_OUT}/${MetadataName}"
 	ruby "${SCRIPT_PATH}/create_xcode_project.rb" "${MetadataName}" "${SDK_OUT}/${MetadataName}/${MetadataName}.xcodeproj" "`find . -regex '.*\.[hm]' -print0 | tr "\0" ";"`"
 		
@@ -177,6 +203,16 @@ HEREDOC)" "${SDK_OUT}/all_services.xcworkspace" "`find . -name '*.xcodeproj' -pr
 
 
 #
+# Search and Replaces
+#
+########################################################################
+
+find "${SDK_OUT}" -name '*.h' -type f -exec sed -i '' 's/^@interface MSOneNoteNotesCollectionFetcher : MSOrcCollectionFetcher/@interface MSOneNoteNotesCollectionFetcher : MSOrcMultipartCollectionFetcher/g' {} \;
+
+find "${SDK_OUT}" -name '*.h' -type f -exec sed -i '' 's/^@interface MSOneNotePageCollectionFetcher : MSOrcCollectionFetcher/@interface MSOneNotePageCollectionFetcher : MSOrcMultipartCollectionFetcher/g' {} \;
+
+
+#
 # Generate podspec
 #
 ########################################################################
@@ -200,7 +236,7 @@ Pod::Spec.new do |s|
   s.social_media_url   = "http://twitter.com/OpenAtMicrosoft"
 
   s.platform     = :ios
-  s.ios.deployment_target = "7.0"
+  s.ios.deployment_target = "8.0"
   s.source       = { :git => "https://github.com/OfficeDev/Office-365-SDK-for-iOS.git",
 		             :tag => "v#{s.version}"
 		           }

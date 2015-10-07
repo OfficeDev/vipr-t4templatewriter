@@ -76,6 +76,7 @@ namespace Vipr.T4TemplateWriter.Extensions
                 ObjCReservedOrProblematicKeywords.Add("unsafe_unretained");
                 ObjCReservedOrProblematicKeywords.Add("readwrite");
                 ObjCReservedOrProblematicKeywords.Add("readonly");
+                ObjCReservedOrProblematicKeywords.Add("inline");
             }
             
             input=input.Trim();
@@ -134,7 +135,6 @@ namespace Vipr.T4TemplateWriter.Extensions
         
         public static string ToObjCProperty(this string input)
         {
-            if(input.StartsWith("is")) input=input.Substring(2);
             return input.ToCamelCasePrefix("").ToObjCIdentifier();
         }
         
@@ -154,8 +154,6 @@ namespace Vipr.T4TemplateWriter.Extensions
             //create owned objects
 
             StringComparison strCmp=StringComparison.CurrentCultureIgnoreCase;
-            
-            if(isBool) input=input.ToCamelCasePrefix("is").ToObjCIdentifier();
 
             if(input.StartsWith("alloc",strCmp) || input.StartsWith("new",strCmp)
             || input.StartsWith("copy",strCmp) || input.StartsWith("mutableCopy",strCmp))

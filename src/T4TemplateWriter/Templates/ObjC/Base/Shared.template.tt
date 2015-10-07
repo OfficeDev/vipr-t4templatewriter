@@ -328,6 +328,20 @@ NSDictionary *<#=dicName#> = [[NSDictionary alloc] initWithObjectsAndKeys: <#+
     
 }
 
+public void SetPropertiesNamesMappings(OdcmClass entity)
+{
+    #>_$$$_$$$propertiesNamesMappings=[[NSDictionary alloc] initWithObjectsAndKeys: <#+
+   
+    foreach (var prop in entity.Properties)
+    {
+        #> @"<#=prop.Name #>", @"<#=prop.Name.ToObjCProperty() #>",<#+
+    }
+
+    #> nil];
+    
+<#+
+}
+
 public void GenerateJsonStringsFromParameters(List<OdcmParameter> parameters)
 {
     foreach (var param in parameters)
