@@ -69,6 +69,7 @@ public class <#=entity.Name.ToUpperFirstChar()#>Fetcher extends <#=className#><<
     <#
     foreach(var prop in entity.StreamProperties()){
     #>
+	
 
 	/**
      * Gets <#=prop.Name.SplitCamelCase().ToLower()#>.
@@ -76,7 +77,7 @@ public class <#=entity.Name.ToUpperFirstChar()#>Fetcher extends <#=className#><<
      * @return the <#=prop.Name.SplitCamelCase().ToLower()#>
      */
     public OrcODataStreamFetcher get<#=prop.Name.ToUpperFirstChar()#>() {
-		return new OrcODataStreamFetcher(urlComponent, this, getResolver());
+		return new OrcODataStreamFetcher("<#=prop.Name.ToLower()#>", this, getResolver());
     }
 
 	<#}#>
