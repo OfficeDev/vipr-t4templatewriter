@@ -109,12 +109,15 @@ public class <#=entity.Name.ToUpperFirstChar()#>CollectionOperations <#=baseOper
         <#= sb.ToString() #>
         Request request = getResolver().createRequest();
         request.setVerb(HttpVerb.GET);
-        request.setContent(serializeToJsonByteArray(map, getResolver()));
 
         <# if (settings.AllowShortActions) { #>
-        request.getUrl().appendPathComponent("<#= action.Name #>");
+		String functionComponent = appendFunctionComponent("<#= action.Name #>", map);
+        request.getUrl().appendPathComponent(functionComponent);
+
         <# } else { #>
-        request.getUrl().appendPathComponent("<#= action.FullName #>");
+	    String functionComponent = appendFunctionComponent("<#= action.FullName #>", map);
+        request.getUrl().appendPathComponent(functionComponent);
+
         <#}#>
 
         ListenableFuture<OrcResponse> future = oDataExecute(request);   
