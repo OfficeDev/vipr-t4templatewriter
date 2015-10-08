@@ -111,10 +111,12 @@ public class <#=entity.Name.ToUpperFirstChar()#>CollectionOperations <#=baseOper
         request.setVerb(HttpVerb.GET);
 
         <# if (settings.AllowShortActions) { #>
+
 		String functionComponent = appendFunctionComponent("<#= action.Name #>", map);
         request.getUrl().appendPathComponent(functionComponent);
 
         <# } else { #>
+
 	    String functionComponent = appendFunctionComponent("<#= action.FullName #>", map);
         request.getUrl().appendPathComponent(functionComponent);
 
