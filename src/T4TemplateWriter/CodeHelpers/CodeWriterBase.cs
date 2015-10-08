@@ -58,6 +58,36 @@ root for authoritative license information.﻿";
                 WriteClosingCommentLine()
               });
         }
-        
+
+        public Node GetModelGraph(OdcmModel model)
+        {
+            Node n = new Node(null, null);
+            foreach (var odcmProperty in model.EntityContainer.Properties)
+            {
+                n.ChildProperties.Add(new Node(n, odcmProperty));
+            }
+
+            n.GenerateGraph();
+
+            return n;
+        }
+
+        public String GetTestName(Node prop)
+        {
+            var testName = "";
+            if (prop != null && prop.Property != null)
+            {
+                var propName = prop.Property.IsCollection ? prop.Property.Name : prop.Property.Name.Singularize();
+                testName += GetTestName(prop.Parent) + propName;
+            }
+
+            return testName;
+        }
+
+        public OdcmProperty GetKeyPropertyForClass(OdcmClass clazz)
+        {
+            var entityClass = clazz as OdcmEntityClass;
+            return entityClass != null ? entityClass.Key.FirstOrDefault() : null;
+        }
     }
 }

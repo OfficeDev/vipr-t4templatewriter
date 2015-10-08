@@ -28,6 +28,7 @@ namespace Vipr.T4TemplateWriter.TemplateProcessor
         EntityCollectionFetcher,
         EntityCollectionOperations,
         EntityClient,
+        EntityClientTests,
         Other,
         Unknown
     }
@@ -79,6 +80,7 @@ namespace Vipr.T4TemplateWriter.TemplateProcessor
 
                 // EntityContainer
                 {FileType.EntityClient,                 ProcessEntityContainerType},
+                {FileType.EntityClientTests,            ProcessEntityContainerTestsType},
 
                 // Other
                 {FileType.Other,                        ProcessTemplate},
@@ -124,6 +126,12 @@ namespace Vipr.T4TemplateWriter.TemplateProcessor
             yield return ProcessTemplate(templateInfo, container);
         }
 
+        protected virtual IEnumerable<TextFile> ProcessEntityContainerTestsType(TemplateFileInfo templateInfo)
+        {
+            var container = this.CurrentModel.EntityContainer;
+            yield return ProcessTemplate(templateInfo, container);
+        }
+
         protected virtual IEnumerable<TextFile> ProcessEnumTypes(TemplateFileInfo templateInfo)
         {
             var enumTypes = CurrentModel.GetEnumTypes();
@@ -143,6 +151,15 @@ namespace Vipr.T4TemplateWriter.TemplateProcessor
         }
 
         protected virtual IEnumerable<TextFile> ProcessEntityTypes(TemplateFileInfo templateInfo)
+        {
+            var entityTypes = CurrentModel.GetEntityTypes();
+            foreach (OdcmObject entityType in entityTypes)
+            {
+                yield return ProcessTemplate(templateInfo, entityType);
+            }
+        }
+
+        protected virtual IEnumerable<TextFile> ProcessEntityTestsTypes(TemplateFileInfo templateInfo)
         {
             var entityTypes = CurrentModel.GetEntityTypes();
             foreach (OdcmObject entityType in entityTypes)

@@ -53,6 +53,8 @@
   <ItemGroup>
     <Compile Include="CodeHelpers\CodeWriterBase.cs" />
     <Compile Include="CodeHelpers\Java\CodeWriterJava.cs" />
+    <Compile Include="CodeHelpers\Java\SubElementDefinition.cs" />
+    <Compile Include="CodeHelpers\Node.cs" />
     <Compile Include="CodeHelpers\ObjC\CodeWriterObjC.cs" />
     <Compile Include="TemplateProcessor\CustomT4Host.cs" />
     <Compile Include="Extensions\StringExtensions.cs" />
@@ -79,25 +81,36 @@
     <None Include=".config\TemplateWriterSettings.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Include="Templates\Java\Model\ComplexType.java.tt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="Templates\Java\Model\EntityType.java.tt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="Templates\Java\Model\EnumType.java.tt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
     <None Include="Templates\Java\Fetchers\EntityClient.java.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Templates\Java\Fetchers\EntityClientTests.java.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="Templates\Java\Fetchers\EntityCollectionOperations.java.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="Templates\Java\Fetchers\EntityFetcher.java.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="Templates\Java\Fetchers\EntityOperations.java.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Templates\Java\Model\ComplexType.java.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Templates\Java\Model\EntityType.java.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Templates\Java\Model\EnumType.java.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="Templates\ObjC\Model\ComplexType.h.tt">

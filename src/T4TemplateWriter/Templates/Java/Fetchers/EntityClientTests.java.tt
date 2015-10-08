@@ -1,0 +1,239 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ output extension="\\" #>
+
+<#
+CustomT4Host host       = (CustomT4Host) Host;
+OdcmModel model         = host.CurrentModel;
+CodeWriterJava writer   = (CodeWriterJava) host.CodeWriter;
+
+Node modelGraph = writer.GetModelGraph(model);
+#>
+
+<#=writer.WriteHeader()#>
+
+package com.microsoft.office365.test.integration.tests;
+
+import <#=model.NamespaceName()#>.*;
+import <#=model.NamespaceName()#>.fetchers.*;
+import com.microsoft.office365.test.integration.ApplicationContext;
+import com.microsoft.office365.test.integration.framework.*;
+import com.microsoft.office365.test.integration.framework.objectFiller.*;
+
+import java.util.List;
+import java.util.Set;
+
+/**
+ * The type <#=model.GetEntityContainer()#>ClientTests.
+ */
+public class <#=model.GetEntityContainer().ToUpperFirstChar()#>ClientTests extends TestGroup {
+    private ObjectFiller mFiller;
+    private Set<String> mNotSupportedTests;
+<#
+    var testsList = new Dictionary<String, String>();
+    var sampleEntities = new Dictionary<String, Node>();
+
+    //Get full method call for a property
+    Func<Node, String> GetFullMethodCall = null;
+    GetFullMethodCall = delegate(Node prop){
+        var strMethod = "";
+        if (prop != null && prop.Property != null)
+        {
+            strMethod = GetFullMethodCall(prop.Parent);
+            if (prop.Property.IsCollection)
+            {   
+                var singleItemPropertyName = "_" + prop.Property.Name.Singularize().ToLowerFirstChar();
+                var listPropertyName = "_list" + prop.Property.Name.ToLowerFirstChar();
+                var keyProperty = writer.GetKeyPropertyForClass(prop.Property.Type as OdcmClass);
+                var keyPropertyForUrl = keyProperty == null ? "Id" : keyProperty.Name.ToUpperFirstChar();
+            #>
+                
+            List<<#=prop.Property.Type.GetTypeString()#>> <#=listPropertyName#> = client<#=strMethod + ".get" + prop.Property.Name.ToUpperFirstChar() + "()" #>.read().get();
+            <#=prop.Property.Type.GetTypeString()#> <#=singleItemPropertyName#> = <#=listPropertyName#> == null? null : <#=listPropertyName#>.get(0);
+            
+            if(<#=singleItemPropertyName#> == null){
+                throw new Exception("<#=prop.Property.Name.Singularize()#> not available. Can't proceed with the test.");
+            }
+            
+            <#   
+                strMethod += ".get" + prop.Property.Name.ToUpperFirstChar() + "().getById(" + singleItemPropertyName +".get" + keyPropertyForUrl + "())";
+            }
+            else
+            {
+                strMethod += ".get" +  prop.Property.Name.ToUpperFirstChar() + "()";
+            }
+        }
+            
+        return strMethod;
+    };
+
+    //Generate GET test for given property
+    Action<Node> AutoGenerateGet = null;
+    AutoGenerateGet = delegate(Node prop)
+    {
+        var testName = writer.GetTestName(prop);
+        testsList.Add("canGet" + testName, "Can get " + testName);
+#>
+      private TestCase canGet<#=testName#>(String name, TestStatus status) {
+        TestCase test = new TestCase() {
+
+            @Override
+            public TestResult executeTest() {
+                try {
+                    TestResult result = new TestResult();
+                    result.setStatus(TestStatus.Failed);
+                    result.setTestCase(this);
+
+                    <#=model.GetEntityContainer().ToUpperFirstChar()#>Client client = ApplicationContext.get<#=model.GetEntityContainer().ToUpperFirstChar()#>Client();
+   
+<#
+        var strMethod = GetFullMethodCall(prop.Parent);
+        
+        if(prop.Property.IsCollection()){
+#>
+                    List<<#=prop.Property.Type.GetTypeString()#>> _<#=prop.Property.Name.ToLowerFirstChar().ToLowerFirstChar()#> = client<#=strMethod + ".get" + prop.Property.Name.ToUpperFirstChar()#>().read().get();
+<#
+}else{
+#>
+                    <#=prop.Property.Type.GetTypeString()#> _<#=prop.Property.Name.ToLowerFirstChar()#> = client<#=strMethod+ ".get" + prop.Property.Name.ToUpperFirstChar()#>().read().get();
+<#
+}
+#>
+                        
+                        if (_<#=prop.Property.Name.ToLowerFirstChar()#> != null)
+                        result.setStatus(TestStatus.Passed);
+
+                    return result;
+                } catch (Exception e) {
+                    return createResultFromException(e);
+                }
+            }
+        };
+
+        test.setName(name);
+        test.setStatus(status);
+        test.setEnabled(status == TestStatus.NotRun);
+        return test;
+    }
+<#
+    };
+
+
+    //Generate Add test for given property
+    Action<Node> AutoGenerateAdd = null;
+    AutoGenerateAdd = delegate(Node prop)
+    {
+        if(prop.Property.IsCollection()){
+            var testName = "canCreate" + writer.GetTestName(prop);
+            testsList.Add(testName, "Can create " + testName);
+#>
+      private TestCase <#=testName#>(String name, TestStatus status) {
+        TestCase test = new TestCase() {
+
+            @Override
+            public TestResult executeTest() {
+                try {
+                    TestResult result = new TestResult();
+                    result.setStatus(TestStatus.Failed);
+                    result.setTestCase(this);
+
+                    <#=model.GetEntityContainer().ToUpperFirstChar()#>Client client = ApplicationContext.get<#=model.GetEntityContainer().ToUpperFirstChar()#>Client();
+                    
+                    <#=prop.Property.Type.GetTypeString()#> sample<#=prop.Property.Type.GetTypeString()#> = getSample<#=prop.Property.Type.GetTypeString()#>();
+<#
+            if(!sampleEntities.ContainsKey(prop.Property.Type.GetTypeString()))
+                sampleEntities.Add(prop.Property.Type.GetTypeString(),prop);
+
+            var strMethod = GetFullMethodCall(prop.Parent);
+
+#>
+                    <#=prop.Property.Type.GetTypeString()#> _created<#=prop.Property.Name.Singularize().ToLowerFirstChar()#> = client<#=strMethod + ".get" + prop.Property.Name.ToUpperFirstChar()#>().add(sample<#=prop.Property.Type.GetTypeString()#>).get();
+                    
+                    if (_created<#=prop.Property.Name.Singularize().ToLowerFirstChar()#> != null)
+                        result.setStatus(TestStatus.Passed);
+
+                    return result;
+                } catch (Exception e) {
+                    return createResultFromException(e);
+                }
+            }
+        };
+
+        test.setName(name);
+
+        test.setStatus(status);
+        test.setEnabled(status == TestStatus.NotRun);
+        return test;
+    }
+<#
+        }
+    };
+
+    // Generate tests for property
+    Action<Node> myRecursive = null;
+    myRecursive = delegate(Node n){
+        foreach (var property in n.ChildProperties)
+        {
+            AutoGenerateGet(property);
+            AutoGenerateAdd(property);
+            myRecursive(property);
+        }
+    };
+
+    //Starting point
+    myRecursive(modelGraph);
+#>
+
+     public <#=model.GetEntityContainer().ToUpperFirstChar()#>ClientTests() {
+        super("<#=model.GetEntityContainer().ToUpperFirstChar()#> Tests");
+    }
+
+    public <#=model.GetEntityContainer().ToUpperFirstChar()#>ClientTests(List<PropertyFilter> filters, Set<String> notSupportedTests ){
+        this();
+        mFiller = new ObjectFiller();
+        mNotSupportedTests = notSupportedTests;
+
+        for (PropertyFilter pf : filters) {
+            mFiller.addPropertyFilter(pf);
+        }
+
+        <#
+    foreach(var test in testsList.Keys){
+#>
+        this.addTest(<#=test#>("<#=testsList[test]#>", getTestStatus("<#=test#>")));
+<#
+    }
+#>
+    }
+
+    private TestStatus getTestStatus(String name){
+        return mNotSupportedTests.contains(name) ? TestStatus.NotSupported : TestStatus.NotRun;
+    }
+<#
+
+    //Generate methods to obtain sample entities
+    foreach(var property in sampleEntities.Keys){
+        var typeString = "";
+        var clazz = sampleEntities[property].Property.Type as OdcmClass;
+        if (clazz != null && clazz.IsAbstract)
+        {
+            var derivedType = clazz.Derived.First() as OdcmType;
+            typeString = derivedType.GetTypeString();
+        }else{
+            typeString = sampleEntities[property].Property.Type.GetTypeString();
+        }
+#>
+    private <#=typeString#> getSample<#=sampleEntities[property].Property.Type.GetTypeString()#>() throws InstantiationException, IllegalAccessException{
+        <#=typeString#> sample<#=typeString#> = new <#=typeString#>();
+
+        mFiller.fill(sample<#=typeString#>);
+        if(sample<#=typeString#> == null) {
+            throw new IllegalArgumentException("Couldn't fill sample <#=typeString#> with default values");
+        }
+
+        return sample<#=typeString#>;
+    }
+
+<#    
+    }
+#>
+}
