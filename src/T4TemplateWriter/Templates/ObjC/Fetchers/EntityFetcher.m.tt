@@ -75,7 +75,7 @@ foreach(var prop in entity.NavigationProperties())
 
 - (<#=prop.GetTypeString(true)#>Fetcher *)<#=prop.GetGetterString()#>ById:(NSString *)identifier {
 
-    return [[<#=prop.GetTypeString(true)#>Fetcher alloc] initWithUrl:[[NSString alloc] initWithFormat:@"('%@')" ,identifier] parent:self];
+    return [[[<#=prop.GetTypeString(true)#>CollectionFetcher alloc] initWithUrl:@"<#=prop.Name#>" parent:self asClass:[<#=prop.GetTypeString(true)#> class]] getById:identifier];
 
 }
 <#
