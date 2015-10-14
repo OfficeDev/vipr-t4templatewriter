@@ -24,6 +24,7 @@ namespace Vipr.T4TemplateWriter.CodeHelpers.Java
         {
             switch (@type.Name)
             {
+                case "Int16":
                 case "Int32":
                     return "Integer";
                 case "Int64":
