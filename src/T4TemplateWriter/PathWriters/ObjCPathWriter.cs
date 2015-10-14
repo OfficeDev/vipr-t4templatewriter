@@ -43,6 +43,7 @@ namespace Vipr.T4TemplateWriter.Output
             string result;
 
             if (templateName.Contains("Entity") && (templateType == TemplateType.Fetchers)) {
+                if(entityTypeName.EndsWith("Collection")) entityTypeName = entityTypeName + "_";
                 result = templateName.Replace("Entity", entityTypeName);
             } else {
                 result = String.Format("{0}.{1}", entityTypeName, fileExtension);

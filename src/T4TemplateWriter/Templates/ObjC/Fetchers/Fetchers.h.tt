@@ -11,10 +11,10 @@ foreach(var et in entityTypes)
 {
 
 #>
-#import "<#=et.ToObjCInterface() #>CollectionFetcher.h"
-#import "<#=et.ToObjCInterface() #>CollectionOperations.h"
-#import "<#=et.ToObjCInterface() #>Fetcher.h"
-#import "<#=et.ToObjCInterface() #>Operations.h"
+#import "<#=et.GetRelatedEntityTypeString("CollectionFetcher") #>.h"
+#import "<#=et.GetRelatedEntityTypeString("CollectionOperations") #>.h"
+#import "<#=et.GetRelatedEntityTypeString("Fetcher") #>.h"
+#import "<#=et.GetRelatedEntityTypeString("Operations") #>.h"
 <#
 
 }

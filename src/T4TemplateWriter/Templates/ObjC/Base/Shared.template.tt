@@ -47,7 +47,7 @@ private void GenerateInterfacePrologue(OdcmClass e)
 
 private void GenerateImplementationPrologue(OdcmClass e,string suffix="")
 {
-    string iName=e.ToObjCInterface() + suffix;
+    string iName=e.GetRelatedEntityTypeString(suffix);
 #>
 
 /** Implementation for <#=iName  #>
@@ -115,6 +115,38 @@ private void GenerateSetterImplementationsForProperties(OdcmClass entity)
 }
        
 <#+    
+
+        if(prop.Type is OdcmEnum && !prop.IsCollection)
+        {
+#>
+
+- (void)<#=prop.GetSetterString()#>String:(NSString *)value {
+    
+    static NSDictionary *stringMappings=nil;
+    
+    if(stringMappings==nil)
+    {
+        stringMappings=[[NSDictionary alloc] initWithObjectsAndKeys:
+        <#+
+            var theEnum=prop.Type.AsOdcmEnum();
+            
+            for(var i=0; i < theEnum.Members.Count; i++)
+            {
+                #> [NSNumber numberWithInt:<#=theEnum.Members[i].Name.ToObjCEnumEntry(theEnum.Name)#>], @"<#=theEnum.Members[i].Name#>",<#+
+            }
+        #>
+
+            nil        
+        ];
+    }
+    
+    self.<#=prop.Name.ToObjCProperty()#> = [stringMappings[value] intValue]; 
+}
+
+<#+         
+        }
+
+
     } 
 }
 
@@ -157,7 +189,7 @@ private void GenerateClassForwardDeclarationsForFetcherDerived(OdcmClass entity)
     foreach(var child in entity.Derived)
     {
 #>
-@class <#=child.ToObjCInterface()#>Fetcher;	
+@class <#=child.GetRelatedEntityTypeString("Fetcher")#>;	
 <#+
     }
 }
@@ -172,7 +204,7 @@ private void GenerateClassForwardDeclarationsForFetcherNavProps(OdcmClass entity
     {
         if(prop.IsCollection() && prop.Type.IsFromOurNamespace())
         {
-            return prop.Type.GetTypeString() + "Fetcher";
+            return prop.Type.GetRelatedEntityTypeString("Fetcher");
         }
         return null;
     },
@@ -189,8 +221,13 @@ private void GenerateClassForwardDeclarations(IEnumerable<OdcmProperty> Properti
         prop =>
         {
             if(prop.Type!=exclusion && prop.Type.IsFromOurNamespace() && prop.Type.IsComplex())
-            {
-                return prop.Type.GetTypeString() + (forFetcher? (prop.IsCollection()?"CollectionFetcher":"Fetcher"):"");
+            {                
+                if(forFetcher)
+                {
+                    return prop.Type.GetRelatedEntityTypeString(prop.IsCollection()?"CollectionFetcher":"Fetcher");
+                }
+                else return prop.Type.GetTypeString();
+                                
             }
             return null;
         },
@@ -328,13 +365,27 @@ NSDictionary *<#=dicName#> = [[NSDictionary alloc] initWithObjectsAndKeys: <#+
     
 }
 
+
+public bool OutputPropertyMappingPair(OdcmClass entity)
+{
+    if(entity!=null)
+    {
+        foreach (var prop in entity.Properties)
+        {
+            #> @"<#=prop.Name #>", @"<#=prop.Name.ToObjCProperty() #>",<#+
+        }   
+        return true;
+    }
+    return false;
+}
+
 public void SetPropertiesNamesMappings(OdcmClass entity)
 {
     #>_$$$_$$$propertiesNamesMappings=[[NSDictionary alloc] initWithObjectsAndKeys: <#+
    
-    foreach (var prop in entity.Properties)
+    while(OutputPropertyMappingPair(entity))
     {
-        #> @"<#=prop.Name #>", @"<#=prop.Name.ToObjCProperty() #>",<#+
+        entity=entity.Base;
     }
 
     #> nil];
@@ -435,7 +486,14 @@ private void GenerateActionMethodRawImplementation(OdcmMethod action)
         
     id<MSOrcRequest> request = [super.resolver createOrcRequest];
     
-    <#+GenerateJsonPayloadFromParameters(action.Parameters);#>
+    <#+
+    
+    if(action.Parameters.Any())
+    {
+        GenerateJsonPayloadFromParameters(action.Parameters);
+    }
+    
+    #>
     
     [request setVerb:HTTP_VERB_POST];
 	 <#+ if (ConfigurationService.Settings.AllowShortActions) { #>    
@@ -486,6 +544,15 @@ private void GeneratePropertyDeclaration(OdcmProperty prop)
 @property (nonatomic, <#=prop.IsComplex()?" copy,":""#> setter=<#=prop.GetSetterString()#>:, getter=<#=prop.GetGetterString()#>) <#=prop.GetTypeReferenceString()#> <#=prop.Name.ToObjCProperty()#>;
 
 <#+    
+
+    if(prop.Type is OdcmEnum && !prop.IsCollection)
+    {
+#>
+- (void)<#=prop.GetSetterString()#>String:(NSString *)value;
+
+<#+         
+    }
+
 }
 
 #>

@@ -2,8 +2,8 @@
 <#@ include file="Shared.template.tt"#>
 
 <#
-string operationsName = entity.ToObjCInterface() + "Operations";                      
-string baseEntityName = (entity.Base == null) ? "MSOrcOperations" : (entity.Base.ToObjCInterface() + "Operations");
+string operationsName = entity.GetRelatedEntityTypeString("Operations");                      
+string baseEntityName = (entity.Base == null) ? "MSOrcOperations" : (entity.Base.GetRelatedEntityTypeString("Operations"));
 GenerateHeaderGuards(operationsName);
 #>				  		
 

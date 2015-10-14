@@ -2,8 +2,8 @@
 <#@ include file="Shared.template.tt"#>
 
 <#
-string collectionOperationsName = entity.ToObjCInterface() + "CollectionOperations";                      
-string baseEntityName = (entity.Base == null) ? "MSOrcOperations" : (entity.Base.ToObjCInterface() + "CollectionOperations");
+string collectionOperationsName = entity.GetRelatedEntityTypeString("CollectionOperations");                      
+string baseEntityName = (entity.Base == null) ? "MSOrcOperations" : (entity.Base.GetRelatedEntityTypeString("CollectionOperations"));
 GenerateHeaderGuards(collectionOperationsName);
 #>
 

@@ -18,8 +18,10 @@ foreach(var prop in entity.Properties)
     GeneratePropertyDeclaration(prop);
 }
 
-
 #>
+
++ (NSDictionary *) $$$_$$$propertiesNamesMappings;
+
 
 @end
 

@@ -3,19 +3,19 @@
 
 <#
 string entityName = entity.ToObjCInterface();
-string fetcherName = entityName + "Fetcher";
+string fetcherName = entity.GetRelatedEntityTypeString("Fetcher");
 #>
 #import "<#=prefix#>Fetchers.h"
 
 @implementation <#=fetcherName#>
 
-@synthesize <#=(entityName+"Operations").ToObjCProperty()#> = _<#=(entityName+"Operations").ToObjCProperty()#>;
+@synthesize operations = _operations;
 
 - (instancetype)initWithUrl:(NSString *)urlComponent parent:(id<MSOrcExecutable>)parent {
 
     if (self = [super initWithUrl:urlComponent parent:parent asClass:[<#=entityName#> class]]) {
 
-		_<#=(entityName+"Operations").ToObjCProperty()#> = [[<#=entityName#>Operations alloc] initOperationWithUrl:urlComponent parent:parent];
+		_operations = [[<#=entity.GetRelatedEntityTypeString("Operations")#> alloc] initOperationWithUrl:urlComponent parent:parent];
     }
 
     return self;
@@ -50,7 +50,7 @@ string fetcherName = entityName + "Fetcher";
 }
 
 - (<#=entityName#>Fetcher *)expand:(NSString *)value {
-    [super select:value];
+    [super expand:value];
     
     return self;
 }
@@ -68,14 +68,14 @@ foreach(var prop in entity.NavigationProperties())
 	{
 #>
 
-- (<#=prop.GetTypeString(true)#>CollectionFetcher *)<#=prop.GetGetterString()#> {
+- (<#=prop.Type.GetRelatedEntityTypeString("CollectionFetcher")#> *)<#=prop.GetGetterString()#> {
 
-    return [[<#=prop.GetTypeString(true)#>CollectionFetcher alloc] initWithUrl:@"<#=prop.Name#>" parent:self asClass:[<#=prop.GetTypeString(true)#> class]];
+    return [[<#=prop.Type.GetRelatedEntityTypeString("CollectionFetcher")#> alloc] initWithUrl:@"<#=prop.Name#>" parent:self asClass:[<#=prop.GetTypeString(true)#> class]];
 }
 
-- (<#=prop.GetTypeString(true)#>Fetcher *)<#=prop.GetGetterString()#>ById:(NSString *)identifier {
+- (<#=prop.Type.GetRelatedEntityTypeString("Fetcher")#> *)<#=prop.GetGetterString()#>ById:(NSString *)identifier {
 
-    return [[[<#=prop.GetTypeString(true)#>CollectionFetcher alloc] initWithUrl:@"<#=prop.Name#>" parent:self asClass:[<#=prop.GetTypeString(true)#> class]] getById:identifier];
+    return [[[<#=prop.Type.GetRelatedEntityTypeString("CollectionFetcher")#> alloc] initWithUrl:@"<#=prop.Name#>" parent:self asClass:[<#=prop.GetTypeString(true)#> class]] getById:identifier];
 
 }
 <#
@@ -84,9 +84,9 @@ foreach(var prop in entity.NavigationProperties())
 	{
 #>
 
-- (<#=prop.GetTypeString(true)#>Fetcher *)<#=prop.GetGetterString()#> {
+- (<#=prop.Type.GetRelatedEntityTypeString("Fetcher")#> *)<#=prop.GetGetterString()#> {
 
-	 return [[<#=prop.GetTypeString(true)#>Fetcher alloc] initWithUrl:@"<#=prop.Name#>" parent:self asClass:[<#=prop.GetTypeString(true)#> class]];
+	 return [[<#=prop.Type.GetRelatedEntityTypeString("Fetcher")#> alloc] initWithUrl:@"<#=prop.Name#>" parent:self asClass:[<#=prop.GetTypeString(true)#> class]];
 }
 <#		
 			
@@ -96,9 +96,9 @@ foreach(var child in entity.Derived)
 {
 #>
 
-- (<#=child.ToObjCInterface()#>Fetcher *)<#=child.Name.ToObjCIdentifierPrefix("as")#> {
+- (<#=child.GetRelatedEntityTypeString("Fetcher")#> *)<#=child.Name.ToObjCIdentifierPrefix("as")#> {
 
-	return [[<#=child.ToObjCInterface()#>Fetcher alloc] initWithUrl:@"" parent:self asClass:[<#=child.ToObjCInterface()#> class]];
+	return [[<#=child.GetRelatedEntityTypeString("Fetcher")#> alloc] initWithUrl:@"" parent:self asClass:[<#=child.ToObjCInterface()#> class]];
 }
 <#
 

@@ -2,7 +2,8 @@
 <#@ include file="Shared.template.tt"#>
 
 <#
-string operationsName = entity.ToObjCInterface() + "Operations";                      
+string operationsName = entity.GetRelatedEntityTypeString("Operations");                      
+                 
 #>
 
 #import "<#=prefix#>Fetchers.h"

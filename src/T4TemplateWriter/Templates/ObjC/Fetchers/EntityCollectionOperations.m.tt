@@ -3,7 +3,7 @@
 
 <#
 string entityName = entity.ToObjCInterface();
-string collectionOperationsName = entityName + "CollectionOperations";
+string collectionOperationsName = entity.GetRelatedEntityTypeString("CollectionOperations");
 #>
 
 #import "<#=entityName#>.h"

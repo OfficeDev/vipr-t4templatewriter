@@ -4,10 +4,22 @@
 
 #import "<#=prefix#>Models.h"
 
+
 <# GenerateImplementationPrologue(entity); #>
 
 @synthesize odataType = _odataType;
-@synthesize $$$_$$$propertiesNamesMappings = _$$$_$$$propertiesNamesMappings;
+
+
++ (NSDictionary *) $$$_$$$propertiesNamesMappings
+{
+    static NSDictionary *_$$$_$$$propertiesNamesMappings=nil; 
+    
+    if(_$$$_$$$propertiesNamesMappings==nil){
+    <# SetPropertiesNamesMappings(entity); #>
+    }
+    
+    return _$$$_$$$propertiesNamesMappings;
+}
 
 - (instancetype)init {
 
@@ -15,7 +27,7 @@
 
 		_odataType = @"#<#=model.GetNamespace()#>.<#=entity.Name#>";
         
-        <# SetPropertiesNamesMappings(entity); #>
+        
 <#
 foreach(var prop in entity.Properties) {
 	

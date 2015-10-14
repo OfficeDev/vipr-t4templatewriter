@@ -24,11 +24,11 @@ GenerateClassForwardDeclarationsForFetcher(model.EntityContainer);
 foreach(var prop in model.EntityContainer.Properties) {
 	if (prop.IsCollection()) {
 #>
-@property (strong, nonatomic, readonly, getter=<#=prop.GetGetterString()#>) <#=prop.GetTypeString(true)#>CollectionFetcher *<#=prop.GetPropertyString()#>;
+@property (strong, nonatomic, readonly, getter=<#=prop.GetGetterString()#>) <#=prop.Type.GetRelatedEntityTypeString("CollectionFetcher")#> *<#=prop.GetPropertyString()#>;
 <#
 	} else {
 #>
-@property (strong, nonatomic, readonly, getter=<#=prop.GetGetterString()#>) <#=prop.GetTypeString(true)#>Fetcher *<#=prop.GetPropertyString()#>;
+@property (strong, nonatomic, readonly, getter=<#=prop.GetGetterString()#>) <#=prop.Type.GetRelatedEntityTypeString("Fetcher")#> *<#=prop.GetPropertyString()#>;
 <#	
 	}
 }

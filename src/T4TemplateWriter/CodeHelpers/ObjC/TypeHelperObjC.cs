@@ -19,6 +19,7 @@ namespace Vipr.T4TemplateWriter.CodeHelpers.ObjC
             "int","float","double","bool"
         };
         
+        
 		public static string GetTypeString(this OdcmType type)
         {
             
@@ -50,6 +51,7 @@ namespace Vipr.T4TemplateWriter.CodeHelpers.ObjC
 				return Prefix + type.Name;
 			}
 		}
+        
 
         public static string GetTypeString(this OdcmProperty property, bool getRealType=false)
         {
@@ -67,6 +69,13 @@ namespace Vipr.T4TemplateWriter.CodeHelpers.ObjC
                 return parameter.Type.GetTypeString();
         }
         
+        
+        public static string GetRelatedEntityTypeString(this OdcmType type, string suffix)
+        {
+            string ts = type.GetTypeString();
+            
+            return ts + (suffix!="" && suffix!="Client" && ts.EndsWith("Collection")?"_":"")+ suffix;
+        }
         
         //For allocation and passing of parameters
         public static string GetTypeReferenceString(this OdcmType type)
@@ -149,7 +158,7 @@ namespace Vipr.T4TemplateWriter.CodeHelpers.ObjC
 			return GetTypeString(property.Type) == "double";
 		}
         
-        public static string ToObjCInterface(this OdcmClass e)
+        public static string ToObjCInterface(this OdcmType e)
         {
             return e!=null?e.Name.ToObjCInterface():"";
         }

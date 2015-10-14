@@ -4,7 +4,7 @@
 
 <#
 string entityName = entity.ToObjCInterface();
-string fetcherName = entityName + "Fetcher";     
+string fetcherName = entity.GetRelatedEntityTypeString("Fetcher");     
 string baseEntityName = entity.Kind == OdcmClassKind.MediaEntity ? "MSOrcMediaEntityFetcher": "MSOrcEntityFetcher";
 
 GenerateHeaderGuards(fetcherName);
@@ -22,7 +22,7 @@ GenerateClassForwardDeclarationsForFetcherDerived(entity);
 GenerateClassForwardDeclarationsForFetcherNavProps(entity);
 
 #>
-@class <#=entityName#>Operations;
+@class <#=(entity.GetRelatedEntityTypeString("Operations"))#>;
 
 
 /** <#=fetcherName#>
@@ -30,7 +30,7 @@ GenerateClassForwardDeclarationsForFetcherNavProps(entity);
  */
 @interface <#=fetcherName#> : <#=baseEntityName#>
 
-@property (copy, nonatomic, readonly) <#=entityName#>Operations *<#=(entityName+"Operations").ToObjCProperty()#>;
+@property (copy, nonatomic, readonly) <#=(entity.GetRelatedEntityTypeString("Operations"))#> *operations;
 
 - (instancetype)initWithUrl:(NSString*)urlComponent parent:(id<MSOrcExecutable>)parent;
 - (void)readWithCallback:(void (^)(<#=entityName#> *, MSOrcError *))callback;
@@ -48,9 +48,9 @@ foreach(var prop in entity.NavigationProperties())
 	{
 
 #>
-@property (strong, nonatomic, readonly, getter=<#=prop.GetGetterString()#>) <#=prop.GetTypeString(true)#>CollectionFetcher *<#=prop.GetPropertyString()#>;
+@property (strong, nonatomic, readonly, getter=<#=prop.GetGetterString()#>) <#=prop.Type.GetRelatedEntityTypeString("CollectionFetcher")#> *<#=prop.GetPropertyString()#>;
 
-- (<#=prop.GetTypeString(true)#>Fetcher *)<#=prop.GetGetterString()#>ById:(NSString*)identifier;
+- (<#=prop.Type.GetRelatedEntityTypeString("Fetcher")#> *)<#=prop.GetGetterString()#>ById:(NSString*)identifier;
 
 <#
 
@@ -60,7 +60,7 @@ foreach(var prop in entity.NavigationProperties())
 
 #>
 
-@property (strong, nonatomic, readonly, getter=<#=prop.GetGetterString()#>) <#=prop.GetTypeString(true)#>Fetcher *<#=prop.GetPropertyString()#>;
+@property (strong, nonatomic, readonly, getter=<#=prop.GetGetterString()#>) <#=prop.Type.GetRelatedEntityTypeString("Fetcher")#> *<#=prop.GetPropertyString()#>;
 <#		
 			
 	}
@@ -70,7 +70,7 @@ foreach(var child in entity.Derived)
 {
 
 #>
-- (<#=child.ToObjCInterface()#>Fetcher *)<#=child.Name.ToObjCIdentifierPrefix("as")#>;	
+- (<#=child.GetRelatedEntityTypeString("Fetcher")#> *)<#=child.Name.ToObjCIdentifierPrefix("as")#>;	
 <#
 
 }

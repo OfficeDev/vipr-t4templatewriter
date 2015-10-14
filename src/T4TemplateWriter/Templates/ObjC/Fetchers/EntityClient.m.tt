@@ -19,9 +19,9 @@ var containerProps = model.EntityContainer.Properties;
 foreach(var prop in containerProps) {
 	if (prop.IsCollection()) {
 #>
-- (<#=prop.Type.GetTypeString()#>CollectionFetcher *)<#=prop.Name.ToLowerFirstChar()#> {
+- (<#=prop.Type.GetRelatedEntityTypeString("CollectionFetcher")#> *)<#=prop.Name.ToLowerFirstChar()#> {
 
-	return [[<#=prop.Type.GetTypeString()#>CollectionFetcher alloc] initWithUrl:@"<#=prop.Name#>" parent:self];
+	return [[<#=prop.Type.GetRelatedEntityTypeString("CollectionFetcher")#> alloc] initWithUrl:@"<#=prop.Name#>" parent:self];
 }
 <#
 	}
@@ -29,9 +29,9 @@ foreach(var prop in containerProps) {
 	{
 #>
 
-- (<#=prop.Type.GetTypeString()#>Fetcher *)<#=prop.Name.ToLowerFirstChar()#> {
+- (<#=prop.Type.GetRelatedEntityTypeString("Fetcher")#> *)<#=prop.Name.ToLowerFirstChar()#> {
 
-	return [[<#=prop.Type.GetTypeString()#>Fetcher alloc] initWithUrl:@"<#=prop.Name#>" parent:self];
+	return [[<#=prop.Type.GetRelatedEntityTypeString("Fetcher")#> alloc] initWithUrl:@"<#=prop.Name#>" parent:self];
 }
 <#	
 	}

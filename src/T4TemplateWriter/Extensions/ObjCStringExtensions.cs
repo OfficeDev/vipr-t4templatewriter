@@ -77,6 +77,7 @@ namespace Vipr.T4TemplateWriter.Extensions
                 ObjCReservedOrProblematicKeywords.Add("readwrite");
                 ObjCReservedOrProblematicKeywords.Add("readonly");
                 ObjCReservedOrProblematicKeywords.Add("inline");
+                ObjCReservedOrProblematicKeywords.Add("operations");
             }
             
             input=input.Trim();

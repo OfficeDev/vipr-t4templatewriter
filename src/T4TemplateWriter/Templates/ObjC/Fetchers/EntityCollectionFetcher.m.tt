@@ -3,12 +3,10 @@
 
 <#
 string entityName = entity.ToObjCInterface();
-string fetcherName = entityName + "Fetcher";
-string collectionFetcherName = entityName + "CollectionFetcher";
+string fetcherName = entity.GetRelatedEntityTypeString("Fetcher");
+string collectionFetcherName = entity.GetRelatedEntityTypeString("CollectionFetcher");
 #>
 
-//#import "<#=fetcherName#>.h"
-//#import "<#=collectionFetcherName#>.h"
 #import "<#=prefix#>Fetchers.h"
 
 @implementation <#=collectionFetcherName#>
@@ -18,7 +16,7 @@ string collectionFetcherName = entityName + "CollectionFetcher";
     return [super initWithUrl:urlComponent parent:parent asClass:[<#=prefix + entity.Name#> class]];
 }
 
-- (void)add:(<#=prefix + entity.Name#>*)entity callback:(void (^)(<#=prefix + entity.Name#> *<#=entity.Name.ToLowerFirstChar()#>, MSOrcError *error))callback {
+- (void)add:(<#=entityName#>*)entity callback:(void (^)(<#=prefix + entity.Name#> *<#=entityName.ToLowerFirstChar()#>, MSOrcError *error))callback {
 	
 	return [super add:entity callback:^(id entityAdded, MSOrcError *e) {
 
@@ -26,7 +24,7 @@ string collectionFetcherName = entityName + "CollectionFetcher";
     }];
 }
 
-- (<#=prefix + entity.Name#>Fetcher *)getById:(NSString *)_id {
+- (<#=fetcherName#> *)getById:(NSString *)_id {
 
     return [[<#=fetcherName#> alloc] initWithUrl:[[NSString alloc] initWithFormat:@"('%@')" ,_id] parent:self];
 }

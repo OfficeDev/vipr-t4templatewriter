@@ -57,13 +57,13 @@
         <Property Name="createdBy" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="The user who created the notebook." />
         </Property>
-        <Property Name="createdByUser" Type="Microsoft.OneNote.Api.IdentitySet">
+        <Property Name="createdByUser" Type="Microsoft.OneNote.Api.ComplexUser">
           <Annotation Term="Org.OData.Core.V1.Description" String="The user who created the notebook." />
         </Property>
         <Property Name="lastModifiedBy" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="The user who last modified the notebook." />
         </Property>
-        <Property Name="lastModifiedByUser" Type="Microsoft.OneNote.Api.IdentitySet">
+        <Property Name="lastModifiedByUser" Type="Microsoft.OneNote.Api.ComplexUser">
           <Annotation Term="Org.OData.Core.V1.Description" String="The user who last modified the notebook." />
         </Property>
         <Property Name="lastModifiedTime" Type="Edm.DateTimeOffset">
@@ -102,13 +102,13 @@
         <Property Name="createdBy" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="The user who created the section group." />
         </Property>
-        <Property Name="createdByUser" Type="Microsoft.OneNote.Api.IdentitySet">
+        <Property Name="createdByUser" Type="Microsoft.OneNote.Api.ComplexUser">
           <Annotation Term="Org.OData.Core.V1.Description" String="The user who created the section group." />
         </Property>
         <Property Name="lastModifiedBy" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="The user who last modified the section group." />
         </Property>
-        <Property Name="lastModifiedByUser" Type="Microsoft.OneNote.Api.IdentitySet">
+        <Property Name="lastModifiedByUser" Type="Microsoft.OneNote.Api.ComplexUser">
           <Annotation Term="Org.OData.Core.V1.Description" String="The user who last modified the section group." />
         </Property>
         <Property Name="lastModifiedTime" Type="Edm.DateTimeOffset">
@@ -150,13 +150,13 @@
         <Property Name="createdBy" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="The user who created the section." />
         </Property>
-        <Property Name="createdByUser" Type="Microsoft.OneNote.Api.IdentitySet">
+        <Property Name="createdByUser" Type="Microsoft.OneNote.Api.ComplexUser">
           <Annotation Term="Org.OData.Core.V1.Description" String="The user who created the section." />
         </Property>
         <Property Name="lastModifiedBy" Type="Edm.String">
           <Annotation Term="Org.OData.Core.V1.Description" String="The user who last modified the section." />
         </Property>
-        <Property Name="lastModifiedByUser" Type="Microsoft.OneNote.Api.IdentitySet">
+        <Property Name="lastModifiedByUser" Type="Microsoft.OneNote.Api.ComplexUser">
           <Annotation Term="Org.OData.Core.V1.Description" String="The user who last modified the section." />
         </Property>
         <Property Name="lastModifiedTime" Type="Edm.DateTimeOffset">
@@ -199,8 +199,6 @@
         <Property Name="content" Type="Edm.Stream" />
         <Property Name="thumbnailUrl" Type="Edm.String" />
         <Property Name="lastModifiedTime" Type="Edm.DateTimeOffset" />
-        <Property Name="level" Type="Edm.Int32" />
-        <Property Name="order" Type="Edm.Int32" />
         <Property Name="id" Type="Edm.String" Nullable="false">
           <Annotation Term="Org.OData.Core.V1.Description" String="The unique identifier of the page" />
         </Property>
@@ -299,10 +297,10 @@
         <Property Name="status" Type="Edm.String" />
         <Property Name="createdDateTime" Type="Edm.DateTimeOffset" />
       </ComplexType>
-      <ComplexType Name="IdentitySet">
-        <Property Name="user" Type="Microsoft.OneNote.Api.Identity" />
+      <ComplexType Name="ComplexUser">
+        <Property Name="user" Type="Microsoft.OneNote.Api.OneNoteUser" />
       </ComplexType>
-      <ComplexType Name="Identity">
+      <ComplexType Name="OneNoteUser">
         <Property Name="id" Type="Edm.String" />
         <Property Name="displayName" Type="Edm.String" />
       </ComplexType>
@@ -360,7 +358,6 @@
         <Parameter Name="siteId" Type="Edm.String" Unicode="false" />
         <Parameter Name="groupId" Type="Edm.String" Unicode="false" />
         <Parameter Name="renameAs" Type="Edm.String" Unicode="false" />
-        <Parameter Name="notebookFolder" Type="Edm.String" Unicode="false" />
         <ReturnType Type="Microsoft.OneNote.Api.CopyStatusModel" />
       </Action>
       <Action Name="CopyToNotebook" IsBound="true">

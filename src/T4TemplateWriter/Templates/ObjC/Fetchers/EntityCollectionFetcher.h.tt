@@ -2,7 +2,7 @@
 <#@ include file="Shared.template.tt"#>
 
 <#
-string collectionFetcherName = entity.ToObjCInterface() + "CollectionFetcher";
+string collectionFetcherName = entity.GetRelatedEntityTypeString("CollectionFetcher");
 GenerateHeaderGuards(collectionFetcherName);
 #>
 
