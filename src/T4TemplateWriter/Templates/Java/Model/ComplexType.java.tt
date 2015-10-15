@@ -13,6 +13,11 @@ package <#=model.NamespaceName()#>;
 import com.microsoft.services.orc.core.ODataBaseEntity;
 <#}#>
 
+<# if (entity.StreamProperties().Any()) {#>
+import com.microsoft.services.orc.core.ODataStream;
+<#}#>
+
+
 <#
     string extends = complex.Base == null ? " extends ODataBaseEntity" : " extends " + complex.Base.Name.Substring(complex.Base.Name.LastIndexOf(".") +1);
 #>
