@@ -29,6 +29,7 @@ namespace Vipr.T4TemplateWriter.TemplateProcessor
         EntityCollectionOperations,
         EntityClient,
         EntityClientTests,
+        EntityClientUnitTests,
         Other,
         Unknown
     }
@@ -81,6 +82,7 @@ namespace Vipr.T4TemplateWriter.TemplateProcessor
                 // EntityContainer
                 {FileType.EntityClient,                 ProcessEntityContainerType},
                 {FileType.EntityClientTests,            ProcessEntityContainerTestsType},
+                {FileType.EntityClientUnitTests,            ProcessEntityContainerUnitTestsType},
 
                 // Other
                 {FileType.Other,                        ProcessTemplate},
@@ -127,6 +129,12 @@ namespace Vipr.T4TemplateWriter.TemplateProcessor
         }
 
         protected virtual IEnumerable<TextFile> ProcessEntityContainerTestsType(TemplateFileInfo templateInfo)
+        {
+            var container = this.CurrentModel.EntityContainer;
+            yield return ProcessTemplate(templateInfo, container);
+        }
+
+        protected virtual IEnumerable<TextFile> ProcessEntityContainerUnitTestsType(TemplateFileInfo templateInfo)
         {
             var container = this.CurrentModel.EntityContainer;
             yield return ProcessTemplate(templateInfo, container);

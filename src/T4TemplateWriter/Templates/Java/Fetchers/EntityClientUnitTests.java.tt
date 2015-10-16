@@ -1,0 +1,192 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ output extension="\\" #>
+
+<#
+CustomT4Host host       = (CustomT4Host) Host;
+OdcmModel model         = host.CurrentModel;
+CodeWriterJava writer   = (CodeWriterJava) host.CodeWriter;
+
+Node modelGraph = writer.GetModelGraph(model);
+#>
+
+<#=writer.WriteHeader()#>
+
+package microsoft.com.unittests;
+
+import com.microsoft.aad.adal4j.AuthenticationResult;
+import com.microsoft.services.orc.auth.AuthenticationCredentials;
+import com.microsoft.services.orc.core.DependencyResolver;
+import com.microsoft.services.orc.http.Credentials;
+import com.microsoft.services.orc.http.impl.*;
+import com.microsoft.services.orc.serialization.impl.*;
+import <#=model.NamespaceName()#>.*;
+import <#=model.NamespaceName()#>.fetchers.*;
+
+
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ExecutionException;
+
+import org.junit.BeforeClass;
+import org.junit.Test;
+
+import microsoft.com.unittests.Constants;
+import microsoft.com.unittests.LoginHelper;
+import static org.junit.Assert.*;
+
+/**
+ * The type <#=model.GetEntityContainer()#>ClientTests.
+ */
+public class <#=model.GetEntityContainer().ToUpperFirstChar()#>ClientUnitTests {
+
+    protected static <#=model.GetEntityContainer().ToUpperFirstChar()#>Client client;
+
+    @BeforeClass
+    public static void setUp() throws Exception {
+        final AuthenticationResult result = LoginHelper.getAccessTokenFromUserCredentials(Constants.<#=model.GetEntityContainer().ToUpper()#>_RESOURCE, Constants.USER, Constants.PASSWORD);
+        DependencyResolver dependencyResolver = new DependencyResolver.Builder(
+                new OkHttpTransport(), new GsonSerializer(),
+                new AuthenticationCredentials() {
+                    @Override
+                    public Credentials getCredentials() {
+                        return new OAuthCredentials(result.getAccessToken());
+                    }
+                }).build();
+
+        client = new <#=model.GetEntityContainer().ToUpperFirstChar()#>Client(Constants.<#=model.GetEntityContainer().ToUpper()#>_ENDPOINT, dependencyResolver);
+    }
+<#
+    var testsList = new Dictionary<String, String>();
+    var sampleEntities = new Dictionary<String, Node>();
+
+    //Get full method call for a property
+    Func<Node, String> GetFullMethodCall = null;
+    GetFullMethodCall = delegate(Node prop){
+        var strMethod = "";
+        if (prop != null && prop.Property != null)
+        {
+            strMethod = GetFullMethodCall(prop.Parent);
+            if (prop.Property.IsCollection)
+            {   
+                var singleItemPropertyName = "_" + prop.Property.Name.Singularize().ToLowerFirstChar();
+                var listPropertyName = "_list" + prop.Property.Name.ToLowerFirstChar();
+                var keyProperty = writer.GetKeyPropertyForClass(prop.Property.Type as OdcmClass);
+                var keyPropertyForUrl = keyProperty == null ? "Id" : keyProperty.Name.ToUpperFirstChar();
+            #>
+
+            List<<#=prop.Property.Type.GetTypeString()#>> <#=listPropertyName#> = client<#=strMethod + ".get" + prop.Property.Name.ToUpperFirstChar() + "()" #>.read().get();
+            <#=prop.Property.Type.GetTypeString()#> <#=singleItemPropertyName#> = <#=listPropertyName#> == null? null : <#=listPropertyName#>.get(0);
+            
+            if(<#=singleItemPropertyName#> == null){
+                throw new Exception("<#=prop.Property.Name.Singularize()#> not available. Can't proceed with the test.");
+            }
+            
+            <#   
+                strMethod += ".get" + prop.Property.Name.ToUpperFirstChar() + "().getById(" + singleItemPropertyName +".get" + keyPropertyForUrl + "())";
+            }
+            else
+            {
+                strMethod += ".get" +  prop.Property.Name.ToUpperFirstChar() + "()";
+            }
+        }
+            
+        return strMethod;
+    };
+
+    //Generate GET test for given property
+    Action<Node> AutoGenerateGet = null;
+    AutoGenerateGet = delegate(Node prop)
+    {
+        var testName = writer.GetTestName(prop);
+        testsList.Add("canGet" + testName, "Can get " + testName);
+#>
+      @Test
+      public void canGet<#=testName#>() throws Exception {
+   
+<#
+        var strMethod = GetFullMethodCall(prop.Parent);
+        
+        if(prop.Property.IsCollection()){
+#>
+                    List<<#=prop.Property.Type.GetTypeString()#>> _<#=prop.Property.Name.ToLowerFirstChar().ToLowerFirstChar()#> = client<#=strMethod + ".get" + prop.Property.Name.ToUpperFirstChar()#>().read().get();
+<#
+}else{
+#>
+                    <#=prop.Property.Type.GetTypeString()#> _<#=prop.Property.Name.ToLowerFirstChar()#> = client<#=strMethod+ ".get" + prop.Property.Name.ToUpperFirstChar()#>().read().get();
+<#
+}
+#>
+                        
+        assertNotNull(_<#=prop.Property.Name.ToLowerFirstChar()#>);
+      }
+<#
+    };
+
+
+    //Generate Add test for given property
+    Action<Node> AutoGenerateAdd = null;
+    AutoGenerateAdd = delegate(Node prop)
+    {
+        if(prop.Property.IsCollection()){
+            var testName = "canCreate" + writer.GetTestName(prop);
+            testsList.Add(testName, "Can create " + testName);
+#>
+      @Test
+      public void <#=testName#>() throws Exception {
+                    
+                    <#=prop.Property.Type.GetTypeString()#> sample<#=prop.Property.Type.GetTypeString()#> = getSample<#=prop.Property.Type.GetTypeString()#>();
+<#
+            if(!sampleEntities.ContainsKey(prop.Property.Type.GetTypeString()))
+                sampleEntities.Add(prop.Property.Type.GetTypeString(),prop);
+
+            var strMethod = GetFullMethodCall(prop.Parent);
+
+#>
+                    <#=prop.Property.Type.GetTypeString()#> _created<#=prop.Property.Name.Singularize().ToLowerFirstChar()#> = client<#=strMethod + ".get" + prop.Property.Name.ToUpperFirstChar()#>().add(sample<#=prop.Property.Type.GetTypeString()#>).get();
+                    
+            assertNotNull(_created<#=prop.Property.Name.Singularize().ToLowerFirstChar()#>);
+    }
+<#
+        }
+    };
+
+    // Generate tests for property
+    Action<Node> myRecursive = null;
+    myRecursive = delegate(Node n){
+        foreach (var property in n.ChildProperties)
+        {
+            AutoGenerateGet(property);
+            AutoGenerateAdd(property);
+            myRecursive(property);
+        }
+    };
+
+    //Starting point
+    myRecursive(modelGraph);
+
+    //Generate methods to obtain sample entities
+    foreach(var property in sampleEntities.Keys){
+        var typeString = "";
+        var clazz = sampleEntities[property].Property.Type as OdcmClass;
+        if (clazz != null && clazz.IsAbstract)
+        {
+            var derivedType = clazz.Derived.First() as OdcmType;
+            typeString = derivedType.GetTypeString();
+        }else{
+            typeString = sampleEntities[property].Property.Type.GetTypeString();
+        }
+#>
+    private <#=typeString#> getSample<#=sampleEntities[property].Property.Type.GetTypeString()#>() throws InstantiationException, IllegalAccessException{
+        <#=typeString#> sample<#=typeString#> = new <#=typeString#>();
+
+        if(sample<#=typeString#> == null) {
+            throw new IllegalArgumentException("Couldn't fill sample <#=typeString#> with default values");
+        }
+
+        return sample<#=typeString#>;
+    }
+
+<#    
+    }
+#>
+}
