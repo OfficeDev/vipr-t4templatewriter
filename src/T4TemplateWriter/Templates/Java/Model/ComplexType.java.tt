@@ -13,7 +13,7 @@ package <#=model.NamespaceName()#>;
 import com.microsoft.services.orc.core.ODataBaseEntity;
 <#}#>
 
-<# if (entity.StreamProperties().Any()) {#>
+<# if (complex.StreamProperties().Any()) {#>
 import com.microsoft.services.orc.core.ODataStream;
 <#}#>
 
