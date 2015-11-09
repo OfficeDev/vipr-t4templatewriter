@@ -39,6 +39,10 @@ namespace Vipr.T4TemplateWriter.CodeHelpers.Java
                     return "ODataStream";
                 case "Duration":
                     return "org.joda.time.Period";
+                case "Date":
+                    return "java.util.Date";
+                case "TimeOfDay":
+                    return "org.joda.time.LocalTime";
                 default:
                     return @type.Name.ToUpperFirstChar();
             }
