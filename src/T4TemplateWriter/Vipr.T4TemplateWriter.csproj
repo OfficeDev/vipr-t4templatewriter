@@ -85,14 +85,6 @@
       <Generator>TextTemplatingFileGenerator</Generator>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Include="Templates\Java\Fetchers\EntityClientUnitTests.java.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="Templates\Java\Fetchers\EntityClientTests.java.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
     <None Include="Templates\Java\Fetchers\EntityCollectionOperations.java.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>

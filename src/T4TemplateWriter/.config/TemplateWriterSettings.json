@@ -6,5 +6,5 @@
     "NamespacePrefix": "MS",
     "InitializeCollections": "false",
     "AllowShortActions": "false",
-    "NamespaceOverride": "com.microsoft.services.outlook"
+    "NamespaceOverride": "com.microsoft.services.graph"
 }
