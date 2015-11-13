@@ -90,7 +90,7 @@ namespace Vipr.T4TemplateWriter
 
         public static bool IsFunction(this OdcmMethod method)
         {
-            return method.IsComposable; //TODO:REVIEW
+            return method.IsFunction; //TODO:REVIEW
         }
 
         public static string GetNamespace(this OdcmModel model)
