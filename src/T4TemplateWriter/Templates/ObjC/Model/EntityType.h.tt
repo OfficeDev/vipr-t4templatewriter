@@ -4,6 +4,7 @@
 <# GenerateHeaderGuards(entity.ToObjCInterface()); #>
 
 #import <Foundation/Foundation.h>
+#import "core/MSOrcChangesTrackingArray.h"
 
 <#
 

@@ -11,9 +11,10 @@ GenerateHeaderGuards(fetcherName);
 
 #>
 
-#import <orc.h>
 #import "<#=prefix#>Models.h"
-#import "<#=baseEntityName#>.h"
+#import "api/api.h"
+#import "core/core.h"
+#import "<#=entity.Kind == OdcmClassKind.MediaEntity ? "core/MSOrcMediaEntityFetcher": "core/MSOrcEntityFetcher"#>.h"
 
 <#
 
@@ -50,7 +51,7 @@ foreach(var prop in entity.NavigationProperties())
 #>
 @property (strong, nonatomic, readonly, getter=<#=prop.GetGetterString()#>) <#=prop.Type.GetRelatedEntityTypeString("CollectionFetcher")#> *<#=prop.GetPropertyString()#>;
 
-- (<#=prop.Type.GetRelatedEntityTypeString("Fetcher")#> *)<#=prop.GetGetterString()#>ById:(NSString*)identifier;
+- (<#=prop.Type.GetRelatedEntityTypeString("Fetcher")#> *)<#=prop.GetGetterString()#>ById:(id)identifier;
 
 <#
 

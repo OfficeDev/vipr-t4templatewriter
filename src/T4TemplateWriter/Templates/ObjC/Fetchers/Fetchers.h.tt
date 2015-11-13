@@ -1,6 +1,7 @@
 ﻿<#@ template debug="true" hostspecific="true" language="C#" #>
 <#@ include file="Shared.template.tt"#>
 
+
 <#
 
 GenerateHeaderGuards(prefix+"Fetchers");

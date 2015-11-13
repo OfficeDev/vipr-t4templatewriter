@@ -3,6 +3,7 @@
 
 
 #import "<#=prefix#>Models.h"
+#import "core/MSOrcObjectizer.h"
 
 <# GenerateImplementationPrologue(entity); #>
 
@@ -19,27 +20,19 @@
     return _$$$_$$$propertiesNamesMappings;
 }
 
+
 - (instancetype)init {
 
 	if (self = [super init]) {
 
 		_odataType = @"#<#=model.GetNamespace()#>.<#=entity.Name#>";
 
-        
-<#
-foreach(var prop in entity.Properties) {
-	
-	if(prop.IsCollection){
-#>
-		_<#=prop.Name.ToObjCProperty()#> = [[NSMutableArray alloc] initWithCollectionType:@"<#=prop.GetTypeString()#>"];
-<#
-	}
-}
-#>
     }
 
 	return self;
 }
+
+<# GenerateImplementationsForMSOrcInteroperableWithDictionary(entity);#>
 
 <# GenerateSetterImplementationsForProperties(entity); #>
 

@@ -20,7 +20,6 @@ private void InitFields(CustomT4Host Host)
     ObjCStringExtensions.EntityContainerName = (model.EntityContainer==null ? "" : model.EntityContainer.Name);
 }
 
-
 private void GenerateHeaderGuards(string fileName)
 {
     
@@ -35,12 +34,13 @@ private void GenerateInterfacePrologue(OdcmClass e)
     string baseEntityName = e.Base == null ? "MSOrcBaseEntity" : e.Base.ToObjCInterface();
     
 #>
-#import "<#=baseEntityName#>.h"
+#import "<#=e.Base == null ? "core/MSOrcBaseEntity" : e.Base.ToObjCInterface()#>.h"
+#import "api/MSOrcInteroperableWithDictionary.h"
 
 /** Interface <#= e.ToObjCInterface() #>
  *
  */
-@interface <#=e.ToObjCInterface()#> : <#=baseEntityName#>
+@interface <#=e.ToObjCInterface()#> : <#=baseEntityName#> <MSOrcInteroperableWithDictionary>
 
 <#+
 }
@@ -91,56 +91,19 @@ private void GenerateSetterImplementationsForProperties(OdcmClass entity)
  */
 - (void) <#=prop.GetSetterString()#>: (<#=prop.GetTypeReferenceString()#>) value {
     _<#=prop.Name.ToObjCProperty()#> = value;
-    [self valueChanged<#+
-  
-        if(prop.IsBool())
-        {
-            Write("ForBool");
-        }
-        else if(prop.IsInt() || prop.IsEnum())
-        {
-            Write("ForInt");
-        }
-        else if(prop.IsDouble())
-        {
-            Write("ForDouble");
-        }
-        else if(prop.IsFloat())
-        {
-            Write("ForFloat");
-        }
-        
-    
-    #>:_<#=prop.Name.ToObjCProperty()#> forProperty:@"<#=prop.Name#>"];
+    [self valueChangedFor:@"<#=prop.Name#>"];
 }
        
 <#+    
 
-        if(prop.Type is OdcmEnum && !prop.IsCollection)
+        if(prop.IsEnum())
         {
 #>
 
-- (void)<#=prop.GetSetterString()#>String:(NSString *)value {
-    
-    static NSDictionary *stringMappings=nil;
-    
-    if(stringMappings==nil)
-    {
-        stringMappings=[[NSDictionary alloc] initWithObjectsAndKeys:
-        <#+
-            var theEnum=prop.Type.AsOdcmEnum();
-            
-            for(var i=0; i < theEnum.Members.Count; i++)
-            {
-                #> [NSNumber numberWithInt:<#=theEnum.Members[i].Name.ToObjCEnumEntry(theEnum.Name)#>], @"<#=theEnum.Members[i].Name#>",<#+
-            }
-        #>
-
-            nil        
-        ];
-    }
-    
-    self.<#=prop.Name.ToObjCProperty()#> = [stringMappings[value] intValue]; 
+- (void)<#=prop.GetSetterString()#>String:(NSString *)string {
+        
+    _<#=prop.Name.ToObjCProperty()#> = [<#=prop.GetTypeReferenceString()#>Serializer fromString:string];
+    [self valueChangedFor:@"<#=prop.Name#>"]; 
 }
 
 <#+         
@@ -305,7 +268,7 @@ private void GenerateActionMethodDeclarations(OdcmClass entity)
   
 }
 
-public void GenerateDictionaryFromParameters(string dicName, List<OdcmParameter> parameters,bool toArray=false)
+public void GenerateDictionaryFromParameters(string dicName, List<OdcmParameter> parameters,bool toArray=false,bool paramsAreString=false)
 {
     if(!parameters.Any())
     {
@@ -341,10 +304,13 @@ NSDictionary *<#=dicName#> = [[NSDictionary alloc] initWithObjectsAndKeys: <#+
         }
         
 
-
         foreach (var param in parameters)
         {
-            if(param.GetTypeString() == "bool")
+            if(paramsAreString)
+            {
+#> <#=param.Name.ToObjCMethodParameter()#>,<#+                
+            }
+            else if(param.GetTypeString() == "bool")
             {
 #> <#=param.Name.ToObjCMethodParameter()#>?@"true":@"false",<#+                
             }
@@ -365,61 +331,53 @@ NSDictionary *<#=dicName#> = [[NSDictionary alloc] initWithObjectsAndKeys: <#+
     
 }
 
-
-public bool OutputPropertyMappingPair(OdcmClass entity)
+public List<OdcmProperty> GetPropertiesFromWholeHierarchy(OdcmClass entity)
 {
-    if(entity!=null)
+    List<OdcmProperty> properties = new List<OdcmProperty>();
+    
+    do
     {
         foreach (var prop in entity.Properties)
         {
-            #> @"<#=prop.Name #>", @"<#=prop.Name.ToObjCProperty() #>",<#+
-        }   
-        return true;
-    }
-    return false;
+            properties.Add(prop);
+        }
+        
+    }while((entity=entity.Base)!=null);
+    
+    return properties;
 }
+
+
 
 public void SetPropertiesNamesMappings(OdcmClass entity)
 {
     #>_$$$_$$$propertiesNamesMappings=[[NSDictionary alloc] initWithObjectsAndKeys: <#+
    
-    while(OutputPropertyMappingPair(entity))
+    foreach (var prop in GetPropertiesFromWholeHierarchy(entity))
     {
-        entity=entity.Base;
-    }
+    #> @"<#=prop.Name #>", @"<#=prop.Name.ToObjCProperty() #>",<#+
+    }  
 
     #> nil];
     
 <#+
 }
 
-public void GenerateJsonStringsFromParameters(List<OdcmParameter> parameters)
+public void GenerateStringsFromParameters(List<OdcmParameter> parameters)
 {
     foreach (var param in parameters)
     {
-#>NSString *<#=param.Name.ToObjCMethodParameter()#>String = [self.resolver.jsonSerializer serialize:<#+
-            if(param.GetTypeString() == "bool")
-            {
-#>(<#=param.Name.ToObjCMethodParameter()#>?@"true":@"false") <#+                
-            }
-            else if(param.GetTypeString() == "int")
-            { 
-#><#=writer.NewStringFromIntegerVariable(param.Name.ToObjCMethodParameter())#> <#+             
-            }
-            else
-            {
-#><#=param.Name.ToObjCMethodParameter()#> <#+ 
-            }
-#>property:@"<#=param.Name#>"];
+#>  NSString *<#=param.Name.ToObjCMethodParameter()#>String = <#=GenerateStringFromORCValue(param.Type,param.Name.ToObjCMethodParameter())#>;
+
 <#+
     }
     
 }
 
-public void GenerateJsonPayloadFromParameters(List<OdcmParameter> parameters)
+public void GenerateJsonPayloadFromStringParameters(List<OdcmParameter> parameters)
 {
     
-    GenerateDictionaryFromParameters("parameters",parameters,true);
+    GenerateDictionaryFromParameters("parameters",parameters,true,true);
 
 #>
     NSData* payload = [[MSOrcBaseContainer generatePayloadWithParameters:parameters dependencyResolver:self.resolver] dataUsingEncoding:NSUTF8StringEncoding];
@@ -430,7 +388,6 @@ public void GenerateJsonPayloadFromParameters(List<OdcmParameter> parameters)
 
 private void GenerateActionMethodImplementation(OdcmMethod action)
 {
-    var clazz = action.ReturnType.IsComplex() ? "[" + action.ReturnType.GetTypeString() + " class]" : "nil";
     
     GenerateActionMethodSignature(action);#>{
 
@@ -447,8 +404,7 @@ private void GenerateActionMethodImplementation(OdcmMethod action)
 	return [super orcExecuteRequest:request callback:^(id<MSOrcResponse> response, MSOrcError *e) {
        
         if (e == nil) {
-
-            <#=action.ReturnType.GetTypeReferenceString()#> result = (<#=action.ReturnType.GetTypeReferenceString()#>)[super.resolver.jsonSerializer deserialize:response.data asClass:<#=clazz#>];
+            <#=action.ReturnType.GetTypeReferenceString()#> result = (<#=action.ReturnType.GetTypeReferenceString()#>)<#=GenerateORCValueFromString(action.ReturnType,"[[NSString alloc] initWithData:response.data encoding:NSUTF8StringEncoding]")#>;
             callback(result, e);
         }
         else {
@@ -460,11 +416,11 @@ private void GenerateActionMethodImplementation(OdcmMethod action)
     
 <#+ }else{ #>
 
-    <#+GenerateJsonStringsFromParameters(action.Parameters);#>
+    <#+GenerateStringsFromParameters(action.Parameters);#>
     return [self <#+ GenerateActionMethodRawCallPrologue(action);#>:^(NSString *returnValue, MSOrcError *e) {
        
        if (e == nil) {
-            <#=action.ReturnType.GetTypeReferenceString()#> result = (<#=action.ReturnType.GetTypeReferenceString()#>)[super.resolver.jsonSerializer deserialize:[returnValue dataUsingEncoding:NSUTF8StringEncoding] asClass:<#=clazz#>];
+            <#=action.ReturnType.GetTypeReferenceString()#> result = (<#=action.ReturnType.GetTypeReferenceString()#>)<#=GenerateORCValueFromString(action.ReturnType,"returnValue")#>;
             callback(result, e);
         } 
         else {
@@ -490,7 +446,7 @@ private void GenerateActionMethodRawImplementation(OdcmMethod action)
     
     if(action.Parameters.Any())
     {
-        GenerateJsonPayloadFromParameters(action.Parameters);
+        GenerateJsonPayloadFromStringParameters(action.Parameters);
     }
     
     #>
@@ -545,14 +501,410 @@ private void GeneratePropertyDeclaration(OdcmProperty prop)
 
 <#+    
 
-    if(prop.Type is OdcmEnum && !prop.IsCollection)
+    if(prop.IsEnum())
     {
 #>
-- (void)<#=prop.GetSetterString()#>String:(NSString *)value;
+- (void)<#=prop.GetSetterString()#>String:(NSString *)string;
 
 <#+         
     }
 
+}
+
+private string GenerateORCValueFromString(OdcmType type,string valueName)
+{
+
+    if(type.IsPODType())
+    {
+        string podPrologue = "[MSOrcObjectizer ";
+        switch(type.GetTypeString())
+        {
+            case "int":         return podPrologue + "intFromString:" + valueName + "]";
+            case "float":       return podPrologue + "floatFromString:" + valueName + "]";
+            case "double":      return podPrologue + "doubleFromString:" + valueName + "]";
+            case "bool":        return podPrologue + "boolFromString:" + valueName + "]";
+            case "long long":   return podPrologue + "longLongFromString:" + valueName + "]";
+            default: return podPrologue + "intFromString:" + valueName + "]";
+        }
+    }
+    else if(type.IsEnum())
+    {
+        return "[" + type.GetTypeString() + "Serializer fromString:" + valueName + "]";
+    }
+    else if(type.GetTypeString() == "NSString")
+    {
+        return "[" + valueName + " copy]";
+    }
+    else if(type.GetTypeString() == "NSDate")
+    {
+        return "[MSOrcObjectizer dateFromString:" + valueName + "]";
+    }
+    else if(type.GetTypeString() == "NSTimeInterval")
+    {
+        return "[MSOrcObjectizer timeIntervalFromString:" + valueName + "]";
+    }
+    else if(type.GetTypeString() == "NSData")
+    {
+        return "[MSOrcObjectizer dataFromString:" + valueName + "]";
+    }
+    else if(type.GetTypeString() == "NSStream")
+    {
+        return "nil/*NSStream*/";
+    }
+    else 
+    {
+        return "[MSOrcObjectizer objectizeFromString:" + valueName + " toType: [" + type.GetTypeString() + "  class]]";  
+    }
+    
+    return "nil/*Unhandled Type*/";    
+}
+
+private string GenerateStringFromORCValue(OdcmType type, string valueName)
+{
+    if(type.IsPODType())
+    {
+        string podPrologue = "[MSOrcObjectizer ";
+        switch(type.GetTypeString())
+        {
+            case "int":         return podPrologue + "stringFromInt:" + valueName + "]";
+            case "float":       return podPrologue + "stringFromFloat:" + valueName + "]";
+            case "double":      return podPrologue + "stringFromDouble:" + valueName + "]";
+            case "bool":        return podPrologue + "stringFromBool:" + valueName + "]";
+            case "long long":   return podPrologue + "stringFromLongLong:" + valueName + "]";
+            default: return podPrologue + "stringFromInt:" + valueName + "]";
+        }
+    }
+    else if(type.IsEnum())
+    {
+        return "[" + type.GetTypeString() + "Serializer toString:" + valueName + "]";
+    }
+    else if(type.GetTypeString() == "NSString")
+    {
+        return "[" + valueName + " copy]";
+    }
+    else if(type.GetTypeString() == "NSDate")
+    {
+        return "[MSOrcObjectizer stringFromDate:" + valueName + "]";
+    }
+    else if(type.GetTypeString() == "NSTimeInterval")
+    {
+        return "[MSOrcObjectizer stringFromTimeInterval:" + valueName + "]";
+    }
+    else if(type.GetTypeString() == "NSData")
+    {
+        return "[MSOrcObjectizer stringFromData:" + valueName + "]";
+    }
+    else if(type.GetTypeString() == "NSStream")
+    {
+        return "nil/*NSStream*/";
+    }
+    else 
+    {
+        return "[MSOrcObjectizer deobjectizeToString:" + valueName + "]";   
+    }
+}
+
+
+
+///////////////////////////////////////
+
+private string GenerateORCValueFromDictionaryValue(OdcmProperty prop , string obj)
+{
+    if(prop.IsPODType(true))
+    {
+        string podPrologue = "[" + obj + " ";
+        switch(prop.GetTypeString(true))
+        {
+            case "int":         return podPrologue + "intValue]";
+            case "float":       return podPrologue + "floatValue]";
+            case "double":      return podPrologue + "doubleValue]";
+            case "bool":        return podPrologue + "boolValue]";
+            case "long long":   return podPrologue + "longLongValue]";
+            default: return podPrologue + "intValue]";
+        }
+    }
+    else if(prop.IsEnum(true))
+    {
+        return "[" + prop.GetTypeString(true) + "Serializer fromString:" + obj + "]";
+    }
+    else if(prop.GetTypeString(true) == "NSString")
+    {
+        return "[" + obj + " copy]";
+    }
+    else if(prop.GetTypeString(true) == "NSDate")
+    {
+        return "[MSOrcObjectizer dateFromString:" + obj + "]";
+    }
+    else if(prop.GetTypeString(true) == "NSTimeInterval")
+    {
+        return "[MSOrcObjectizer timeIntervalFromString:" + obj + "]";
+    }
+    else if(prop.GetTypeString(true) == "NSData")
+    {
+        return "[MSOrcObjectizer dataFromString:" + obj + "]";
+    }
+    else if(prop.GetTypeString(true) == "NSStream")
+    {
+        return "nil/*NSStream*/";
+    }
+    else 
+    {
+        return "[[" + prop.GetTypeString(true) + " alloc] initWithDictionary: " + obj + "]";   
+    }
+    
+    return "nil/*Unhandled Type*/";
+}
+
+
+private string GenerateDictionaryValueFromORCValue(OdcmProperty prop)
+{
+    OdcmType type=prop.Type;
+    string valueName="self." + prop.Name.ToObjCProperty();
+    return GenerateDictionaryValueFromORCValue(type,valueName);
+}
+
+private string GenerateDictionaryValueFromORCValue(OdcmType type, string valueName)
+{
+    if(type.IsPODType())
+    {
+        if(type.GetTypeString()=="bool")
+        {
+            return "(" + valueName + "?@\"true\":@\"false\")";
+        }
+        
+        string podStr = "[NSNumber ";
+        switch(type.GetTypeString())
+        {
+            case "int":         podStr+="numberWithInt: "; break;
+            case "float":       podStr+="numberWithFloat: "; break;
+            case "double":      podStr+="numberWithDouble: "; break;
+            case "long long":   podStr+="numberWithLongLong: "; break;
+            default:            podStr+="numberWithInt: "; break;
+        }
+        podStr += valueName + "]";
+        return podStr;
+    }
+    else if(type.IsEnum())
+    {
+        return "[" + type.GetTypeString() + "Serializer toString:" + valueName + "]";
+    }
+    else if(type.GetTypeString() == "NSString")
+    {
+        return "[" + valueName + " copy]";
+    }
+    else if(type.GetTypeString() == "NSDate")
+    {
+        return "[MSOrcObjectizer stringFromDate:" + valueName + "]";
+    }
+    else if(type.GetTypeString() == "NSTimeInterval")
+    {
+        return "[MSOrcObjectizer stringFromTimeInterval:" + valueName + "]";
+    }
+    else if(type.GetTypeString() == "NSData")
+    {
+        return "[MSOrcObjectizer stringFromData:" + valueName + "]";
+    }
+    else if(type.GetTypeString() == "NSStream")
+    {
+        return "nil/*NSStream*/";
+    }
+    else 
+    {
+        return "[" + valueName + " toDictionary]";   
+    }
+
+    return "nil/*Unhandled Type*/";
+}
+
+
+private void GenerateArrayToDictionaryEntry(OdcmType arrayType, string arrayName,string currentArray)
+{
+    #>
+    NSMutableArray *<#=arrayName#> = [[NSMutableArray alloc] init];
+    
+    for(id obj in <#=currentArray#>) {
+       [<#=arrayName#> addObject:<#=GenerateDictionaryValueFromORCValue(arrayType,"obj")#>];
+    }
+    
+    <#+
+}
+
+private void GenerateImplementationsForMSOrcInteroperableWithDictionary(OdcmClass entity)
+{
+#>
+
+- (instancetype) initWithDictionary: (NSDictionary *) dic {
+    if((self = [self init])) {
+    
+<#+
+    foreach (var prop in GetPropertiesFromWholeHierarchy(entity))
+    {
+        string dictionaryAccess = "[dic objectForKey: @\"" + prop.Name + "\"]";
+        string curPropAccess=(entity.Properties.Contains(prop)?"_":"self.")+prop.Name.ToObjCProperty();
+        
+        if(prop.IsCollection)
+        {
+            
+#>
+
+        if(<#=dictionaryAccess#> != [NSNull null]){
+            <#=curPropAccess#> = [[MSOrcChangesTrackingArray alloc] init];
+            
+            for (id object in <#=dictionaryAccess#>) {
+                [<#=curPropAccess#> addObject:<#=(prop.IsPODType() || prop.IsEnum(true))?
+                "@("+GenerateORCValueFromDictionaryValue(prop,"object") + ")":
+                     GenerateORCValueFromDictionaryValue(prop,"object")#>];
+            }
+            
+            [(MSOrcChangesTrackingArray *)<#=curPropAccess#> resetChangedFlag];
+        }
+        
+<#+
+
+        }
+        else
+        {
+            this.Write("\t\t" + curPropAccess + " = " + dictionaryAccess + " != nil ? ");
+        
+            this.Write(GenerateORCValueFromDictionaryValue(prop,dictionaryAccess));
+            
+            this.Write(" : " + curPropAccess + ";\n");
+        }
+    }
+    #>
+
+    [self.updatedValues removeAllObjects];
+    }
+    
+    return self;
+}
+
+- (NSDictionary *) toDictionary {
+    
+    NSMutableDictionary *dic=[[NSMutableDictionary alloc] init];
+
+<#+
+   
+    foreach (var prop in GetPropertiesFromWholeHierarchy(entity))
+    {        
+        this.Write("\t{");
+        
+        if(prop.IsCollection)
+        {
+            GenerateArrayToDictionaryEntry(prop.Type,"curVal","self." + prop.Name.ToObjCProperty());
+            this.Write("if([curVal count]==0) curVal=nil;\n");
+            this.Write("if (curVal!=nil) [dic setValue: curVal");
+            this.Write(" forKey: @\"" + prop.Name + "\"];}\n");
+        }
+        else
+        {
+            if(prop.IsComplex())
+            {
+                this.Write("id curVal = " + GenerateDictionaryValueFromORCValue(prop) + ";");
+                this.Write("if (curVal!=nil) [dic setValue: curVal");
+                this.Write(" forKey: @\"" + prop.Name + "\"];}\n");
+            }
+            else
+            {
+                this.Write("[dic setValue: " + GenerateDictionaryValueFromORCValue(prop) + " forKey: @\"" + prop.Name + "\"];}\n");
+            }
+        }
+        
+        
+    }
+#>
+    [dic setValue: @"#<#=model.GetNamespace()#>.<#=entity.Name#>" forKey: @"@odata.type"];
+
+    return dic;
+}
+
+- (NSDictionary *) toUpdatedValuesDictionary {
+    
+    NSMutableDictionary *dic=[[NSMutableDictionary alloc] init];
+
+<#+
+   
+    foreach (var prop in GetPropertiesFromWholeHierarchy(entity))
+    {        
+        if(prop.IsComplex())
+        {
+        this.Write("\t{id curVal = " + "self." + prop.Name.ToObjCProperty() + ";" );
+        #>
+
+    if([self.updatedValues containsObject:@"<#=prop.Name#>"])
+    {
+        <#+
+        if(prop.IsCollection())
+        {
+        //Collection update:
+        GenerateArrayToDictionaryEntry(prop.Type,"curArray","curVal");
+        #>
+        [dic setValue: curArray forKey: @"<#=prop.Name#>"];
+        <#+
+        }
+        else
+        {
+        //Complex update 
+        #>
+        [dic setValue: curVal==nil?[NSNull null]:<#=GenerateDictionaryValueFromORCValue(prop.Type,"curVal")#> forKey: @"<#=prop.Name#>"];
+        <#+
+        }
+        #>
+    }
+    <#+
+        if(prop.IsCollection() || prop.Type.IsFromOurNamespace())
+        {
+    #>
+    else
+    {
+        <#+
+        if(prop.IsCollection())
+        {
+        //Check collection change:
+        #>
+        
+        if(![curVal isKindOfClass:[MSOrcChangesTrackingArray class]] || [(MSOrcChangesTrackingArray *)curVal hasChanged])
+        {
+            <#+GenerateArrayToDictionaryEntry(prop.Type,"curArray","self." + prop.Name.ToObjCProperty());#>
+             [dic setValue: curArray forKey: @"<#=prop.Name#>"];
+        }
+        
+        <#+
+        }
+        else
+        {
+        //Check complex change    
+        #>
+        
+        NSDictionary *updatedDic=[curVal toUpdatedValuesDictionary];
+        
+            if(updatedDic!=nil && [updatedDic count]>0)
+            {
+                [dic setValue: [curVal toDictionary] forKey: @"<#=prop.Name#>"];
+            }
+        
+        <#+
+        }
+        #>
+    }<#+
+        }
+    #>
+}
+<#+
+        }
+        else
+        {
+           #> if([self.updatedValues containsObject:@"<#=prop.Name#>"])
+            { <#+
+                this.Write("[dic setValue: " + GenerateDictionaryValueFromORCValue(prop) + " forKey: @\"" + prop.Name + "\"];\n");
+           #>}<#+
+        }
+    }
+#>
+    return dic;
+}
+
+<#+
 }
 
 #>

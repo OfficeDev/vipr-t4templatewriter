@@ -1,0 +1,60 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ include file="Shared.template.tt"#>
+
+<# 
+
+var curTypeAsEnum = host.CurrentType.AsOdcmEnum();
+            
+#>
+
+#import "<#=curTypeAsEnum.Name.ToObjCEnum()#>.h"
+
+@implementation <#=curTypeAsEnum.Name.ToObjCEnum()#>Serializer
+
++(<#=curTypeAsEnum.Name.ToObjCEnum()#>) fromString:(NSString *) string {
+
+    static NSDictionary *stringMappings=nil;
+    
+    if(stringMappings==nil)
+    {
+        stringMappings=[[NSDictionary alloc] initWithObjectsAndKeys:
+        <#
+            
+            for(var i=0; i < curTypeAsEnum.Members.Count; i++)
+            {
+                #> [NSNumber numberWithInt:<#=curTypeAsEnum.Members[i].Name.ToObjCEnumEntry(curTypeAsEnum.Name)#>], @"<#=curTypeAsEnum.Members[i].Name#>",<#
+            }
+        #>
+
+            nil        
+        ];
+    }
+    
+    return [stringMappings[string] intValue];
+
+}
+
++(NSString *) toString: (<#=curTypeAsEnum.Name.ToObjCEnum()#>) value {
+
+    static NSDictionary *stringMappings=nil;
+    
+    if(stringMappings==nil)
+    {
+        stringMappings=[[NSDictionary alloc] initWithObjectsAndKeys:
+        <#
+            
+            for(var i=0; i < curTypeAsEnum.Members.Count; i++)
+            {
+                #> @"<#=curTypeAsEnum.Members[i].Name#>", [NSNumber numberWithInt:<#=curTypeAsEnum.Members[i].Name.ToObjCEnumEntry(curTypeAsEnum.Name)#>],<#
+            }
+        #>
+
+            nil        
+        ];
+    }
+    
+    return stringMappings[[NSNumber numberWithInt:value]];
+}
+
+@end
+

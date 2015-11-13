@@ -5,11 +5,11 @@
 # perl
 # ruby
 # xcodeproj ([sudo] gem install xcodeproj)
-# mono (brew version seems to miss PCB, use the pkg from the official site)
+# mono (brew version seems to miss PCL, use the pkg from the official site)
 #
 
 
-SDK_VERSION="0.10.0"
+SDK_VERSION="0.12.0"
 
 
 SCRIPT_PATH=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
@@ -79,6 +79,7 @@ function processMetadata
 	PrimaryNamespaceName=""
 	EntityContainerName=""
 	DeleteAndMoveTo=""
+    AllowShortActions="true"
     
 	source "${ConfigPath}"
 	
@@ -95,7 +96,7 @@ function processMetadata
 	echo "\"PrimaryNamespaceName\" : \"${PrimaryNamespaceName}\"," >> "${JsonPath}"
     echo "\"NamespacePrefix\": \"${NamespacePrefix}\"," >> "${JsonPath}"
     echo "\"InitializeCollections\": \"false\"," >> "${JsonPath}"
-    echo "\"AllowShortActions\": \"true\"," >> "${JsonPath}"
+    echo "\"AllowShortActions\": \"${AllowShortActions}\"," >> "${JsonPath}"
     echo "\"NamespaceOverride\": \"${NamespaceOverride}\"" >> "${JsonPath}"
     echo "}" >> "${JsonPath}"
 
@@ -158,8 +159,8 @@ function processMetadata
 #ifndef ${HeaderGuard}
 #define ${HeaderGuard}
 
-#import <${MetadataNamePlusNS}Fetchers.h>
-#import <${MetadataNamePlusNS}Models.h>
+#import "${MetadataNamePlusNS}Fetchers.h"
+#import "${MetadataNamePlusNS}Models.h"
 
 #endif
     

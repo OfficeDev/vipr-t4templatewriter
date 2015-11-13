@@ -13,10 +13,10 @@ string collectionFetcherName = entity.GetRelatedEntityTypeString("CollectionFetc
 
 - (instancetype)initWithUrl:(NSString *)urlComponent parent:(id<MSOrcExecutable>)parent {
 
-    return [super initWithUrl:urlComponent parent:parent asClass:[<#=prefix + entity.Name#> class]];
+    return [super initWithUrl:urlComponent parent:parent asClass:[<#=entity.ToObjCInterface()#> class]];
 }
 
-- (void)add:(<#=entityName#>*)entity callback:(void (^)(<#=prefix + entity.Name#> *<#=entityName.ToLowerFirstChar()#>, MSOrcError *error))callback {
+- (void)add:(<#=entityName#>*)entity callback:(void (^)(<#=entity.ToObjCInterface()#> *<#=entityName.ToLowerFirstChar()#>, MSOrcError *error))callback {
 	
 	return [super add:entity callback:^(id entityAdded, MSOrcError *e) {
 
@@ -24,9 +24,15 @@ string collectionFetcherName = entity.GetRelatedEntityTypeString("CollectionFetc
     }];
 }
 
-- (<#=fetcherName#> *)getById:(NSString *)_id {
+- (void)readWithCallback:(void (^)(NSArray *, MSOrcError *))callback {
+    [super readWithCallback:^(id response, MSOrcError *error) {
+        callback(response, error);
+    }];
+}
 
-    return [[<#=fetcherName#> alloc] initWithUrl:[[NSString alloc] initWithFormat:@"('%@')" ,_id] parent:self];
+- (<#=fetcherName#> *)getById:(id) identifier {
+
+    return [[<#=fetcherName#> alloc] initWithUrl:[[NSString alloc] initWithFormat:@"('%@')" , identifier] parent:self];
 }
 
 - (<#=collectionFetcherName#> *)select:(NSString *)params {

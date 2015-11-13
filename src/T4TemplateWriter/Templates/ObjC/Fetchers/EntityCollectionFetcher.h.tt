@@ -8,9 +8,9 @@ GenerateHeaderGuards(collectionFetcherName);
 
 @class <#=entity.ToObjCInterface()#>Fetcher;
 
-
-
-#import <orc.h>
+#import "core/MSOrcCollectionFetcher.h"
+#import "api/api.h"
+#import "core/core.h"
 #import "<#=prefix#>Models.h"
 
 /** <#=collectionFetcherName#>
@@ -20,7 +20,9 @@ GenerateHeaderGuards(collectionFetcherName);
 
 - (instancetype)initWithUrl:(NSString *)urlComponent parent:(id<MSOrcExecutable>)parent;
 
-- (<#=entity.ToObjCInterface()#>Fetcher *)getById:(NSString *)Id;
+- (void)readWithCallback:(void (^)(NSArray *, MSOrcError *))callback;
+
+- (<#=entity.ToObjCInterface()#>Fetcher *)getById: (id) identifier;
 - (void)add:(<#=entity.ToObjCInterface()#> *)entity callback:(void (^)(<#=entity.ToObjCInterface()#> *, MSOrcError *))callback;
 
 - (<#=collectionFetcherName#> *)select:(NSString *)params;

@@ -10,7 +10,7 @@ GenerateHeaderGuards(curTypeAsEnum.Name.ToObjCEnum());
 
 #import <Foundation/Foundation.h>
 
-/** Enum <#= curTypeAsEnum.Name.ToObjCEnum() #>
+/** Enum <#= curTypeAsEnum.Name.ToObjCEnum() #>Enum
  *
  */
 typedef NS_ENUM(NSInteger, <#= curTypeAsEnum.Name.ToObjCEnum() #>) {
@@ -30,5 +30,11 @@ string value = curTypeAsEnum.Members[i].Name.ToObjCEnumEntry(curTypeAsEnum.Name)
 }
 #>
 };
+
+
+@interface <#=curTypeAsEnum.Name.ToObjCEnum()#>Serializer : NSObject
++(<#=curTypeAsEnum.Name.ToObjCEnum()#>) fromString:(NSString *) string;
++(NSString *) toString: (<#=curTypeAsEnum.Name.ToObjCEnum()#>) value;
+@end
 
 #endif

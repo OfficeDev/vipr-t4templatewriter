@@ -14,12 +14,12 @@ namespace Vipr.T4TemplateWriter.CodeHelpers.ObjC
 	{
         public static string Prefix = "";
         
-        private static HashSet<string> primitiveTypes = new HashSet<string>()
+        private static HashSet<string> podTypes = new HashSet<string>()
         {
-            "int","float","double","bool"
+            "int","float","double","bool","long long", "NSTimeInterval"
         };
         
-        
+
 		public static string GetTypeString(this OdcmType type)
         {
             
@@ -29,18 +29,23 @@ namespace Vipr.T4TemplateWriter.CodeHelpers.ObjC
 			switch (type.Name) {
 			case "String":
 				return "NSString";
+            case "Int16":
 			case "Int32":
 				return "int";
 			case "Int64":
-				return "int";
+				return "long long";
             case "Single":
                 return "float";
             case "Double":
                 return "double";
 			case "Guid":
 				return "NSString";
+            case "Date":
+            case "TimeOfDay":
 			case "DateTimeOffset":
 				return "NSDate";
+            case "Duration":
+                return "NSTimeInterval";
 			case "Binary":
 				return "NSData";
 			case "Boolean":
@@ -48,10 +53,17 @@ namespace Vipr.T4TemplateWriter.CodeHelpers.ObjC
 			case "Stream":
 				return "NSStream";
 			default:
-				return Prefix + type.Name;
+				return Prefix + type.Name.ToUpperFirstChar();
 			}
 		}
         
+        public static string GetTypeString(this OdcmParameter param, bool getRealType=false)
+        {
+            if (!getRealType && param.IsCollection)
+				return  "NSMutableArray";
+			else
+                return param.Type.GetTypeString();
+        }
 
         public static string GetTypeString(this OdcmProperty property, bool getRealType=false)
         {
@@ -59,14 +71,6 @@ namespace Vipr.T4TemplateWriter.CodeHelpers.ObjC
 				return  "NSMutableArray";
 			else
                 return property.Type.GetTypeString();
-        }
-        
-        public static string GetTypeString(this OdcmParameter parameter, bool getRealType=false)
-        {
-            if (!getRealType && parameter.IsCollection)
-				return  "NSMutableArray";
-			else
-                return parameter.Type.GetTypeString();
         }
         
         
@@ -109,7 +113,7 @@ namespace Vipr.T4TemplateWriter.CodeHelpers.ObjC
         public static bool IsComplex(this OdcmType type)
         {
             string t = GetTypeString(type);
-            return !(primitiveTypes.Contains(t) || t == "Byte" || type is OdcmEnum);
+            return !(podTypes.Contains(t) || t == "Byte" || type is OdcmEnum);
         }
 
 		public static bool IsComplex(this OdcmProperty property)
@@ -130,12 +134,27 @@ namespace Vipr.T4TemplateWriter.CodeHelpers.ObjC
 		public static bool IsSystem(this OdcmType type)
 		{
 			string t = GetTypeString(type);
-			return (primitiveTypes.Contains(t) || t == "Byte" || t == "NSString" || t == "NSDate");
+			return (podTypes.Contains(t) || t == "Byte" || t == "NSString" || t == "NSDate");
+		}
+        
+        public static bool IsPODType(this OdcmProperty property, bool getRealType=false)
+		{
+            return podTypes.Contains(property.GetTypeString(getRealType));
 		}
 
-		public static bool IsEnum(this OdcmProperty property)
+		public static bool IsPODType(this OdcmType type)
 		{
-			return !property.IsCollection() && property.Type is OdcmEnum;
+			return podTypes.Contains(type.GetTypeString());
+		}
+
+		public static bool IsEnum(this OdcmType type)
+		{
+			return type is OdcmEnum;
+		}
+        
+		public static bool IsEnum(this OdcmProperty property, bool getRealType=false)
+		{
+			return (property.Type is OdcmEnum) && (getRealType || !property.IsCollection);
 		}
         
         public static bool IsBool(this OdcmProperty property)
@@ -157,6 +176,11 @@ namespace Vipr.T4TemplateWriter.CodeHelpers.ObjC
 		{
 			return GetTypeString(property.Type) == "double";
 		}
+        
+        public static bool IsNSTimeInterval(this OdcmProperty property)
+        {
+            return GetTypeString(property.Type) == "NSTimeInterval";
+        }
         
         public static string ToObjCInterface(this OdcmType e)
         {

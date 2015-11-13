@@ -3,7 +3,7 @@
 
 <# GenerateHeaderGuards(prefix+"Models"); #>
 
-#import "NSArray+Extension.h"
+#import "core/NSArray+Extension.h"
 
 <#
 		

@@ -118,6 +118,9 @@
     <None Include="Templates\ObjC\Model\EnumType.h.tt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Include="Templates\ObjC\Model\EnumType.m.tt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="Templates\ObjC\Model\Models.h.tt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

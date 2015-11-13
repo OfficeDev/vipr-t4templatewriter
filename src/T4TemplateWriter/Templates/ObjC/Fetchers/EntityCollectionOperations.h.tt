@@ -7,9 +7,12 @@ string baseEntityName = (entity.Base == null) ? "MSOrcOperations" : (entity.Base
 GenerateHeaderGuards(collectionOperationsName);
 #>
 
-#import <orc.h>
+
 #import "<#=prefix#>Models.h"
-#import "<#=baseEntityName#>.h"
+#import "api/api.h"
+#import "core/core.h"
+#import "<#=(entity.Base == null) ? "core/MSOrcOperations" : (entity.Base.GetRelatedEntityTypeString("CollectionOperations"))#>.h"
+
 
 /** <#=collectionOperationsName#>
  *

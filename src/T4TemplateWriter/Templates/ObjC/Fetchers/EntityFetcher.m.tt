@@ -31,25 +31,25 @@ string fetcherName = entity.GetRelatedEntityTypeString("Fetcher");
 	return [super deleteWithCallback:callback];
 }
 
-- (<#=entityName#>Fetcher *)addCustomParametersWithName:(NSString *)name value:(id)value {
+- (<#=fetcherName#> *)addCustomParametersWithName:(NSString *)name value:(id)value {
     [super addCustomParametersWithName:name value:value];
     
     return self;
 }
 
-- (<#=entityName#>Fetcher *)addCustomHeaderWithName:(NSString *)name value:(NSString *)value {
+- (<#=fetcherName#> *)addCustomHeaderWithName:(NSString *)name value:(NSString *)value {
     [super addCustomHeaderWithName:name value:value];
     
     return self;
 }
 
-- (<#=entityName#>Fetcher *)select:(NSString *)params {
+- (<#=fetcherName#> *)select:(NSString *)params {
     [super select:params];
     
     return self;
 }
 
-- (<#=entityName#>Fetcher *)expand:(NSString *)value {
+- (<#=fetcherName#> *)expand:(NSString *)value {
     [super expand:value];
     
     return self;
