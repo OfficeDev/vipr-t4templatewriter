@@ -61,7 +61,7 @@ function processMetadata
 	echo "\"PrimaryNamespaceName\" : \"${PrimaryNamespaceName}\"," >> "${JsonPath}"
     echo "\"NamespacePrefix\": \"${NamespacePrefix}\"," >> "${JsonPath}"
     echo "\"InitializeCollections\": \"false\"," >> "${JsonPath}"
-    echo "\"AllowShortActions\": \"true\"," >> "${JsonPath}"
+    echo "\"AllowShortActions\": \"false\"," >> "${JsonPath}"
     echo "\"NamespaceOverride\": \"${NamespaceOverride}\"" >> "${JsonPath}"
     echo "}" >> "${JsonPath}"
 

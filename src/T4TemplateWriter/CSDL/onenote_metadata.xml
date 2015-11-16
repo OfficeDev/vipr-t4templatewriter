@@ -396,7 +396,7 @@
         <Parameter Name="bindingParameter" Type="Collection(Microsoft.OneNote.Api.Notebook)" />
         <ReturnType Type="Microsoft.OneNote.Api.ImportStatusModel" />
       </Action>
-      <EntityContainer Name="OneNote">
+      <EntityContainer Name="OneNoteApi">
         <EntitySet Name="users" EntityType="Microsoft.OneNote.Api.User" />
         <Singleton Name="me" Type="Microsoft.OneNote.Api.User" />
         <Singleton Name="myOrganization" Type="Microsoft.OneNote.Api.MyOrganization" />
