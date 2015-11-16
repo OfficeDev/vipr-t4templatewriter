@@ -6,6 +6,7 @@ string entityName = entity.ToObjCInterface();
 string fetcherName = entity.GetRelatedEntityTypeString("Fetcher");
 #>
 #import "<#=prefix#>Fetchers.h"
+#import "core/core.h"
 
 @implementation <#=fetcherName#>
 
@@ -61,6 +62,17 @@ string fetcherName = entity.GetRelatedEntityTypeString("Fetcher");
     }];
 }
 <#
+
+foreach(var prop in entity.StreamProperties())
+{
+#>
+- (MSOrcStreamFetcher *)<#=prop.GetGetterString()#> {
+
+    return [[MSOrcStreamFetcher alloc] initWithUrl:@"<#=prop.Name#>" parent:self];
+}
+<#    
+}
+   
 
 foreach(var prop in entity.NavigationProperties())
 {

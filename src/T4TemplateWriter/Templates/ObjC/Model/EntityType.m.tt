@@ -14,9 +14,7 @@
 {
     static NSDictionary *_$$$_$$$propertiesNamesMappings=nil; 
     
-    if(_$$$_$$$propertiesNamesMappings==nil){
     <# SetPropertiesNamesMappings(entity); #>
-    }
     
     return _$$$_$$$propertiesNamesMappings;
 }

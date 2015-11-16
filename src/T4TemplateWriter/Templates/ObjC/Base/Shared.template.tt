@@ -351,16 +351,24 @@ public List<OdcmProperty> GetPropertiesFromWholeHierarchy(OdcmClass entity)
 
 public void SetPropertiesNamesMappings(OdcmClass entity)
 {
-    #>_$$$_$$$propertiesNamesMappings=[[NSDictionary alloc] initWithObjectsAndKeys: <#+
-   
-    foreach (var prop in GetPropertiesFromWholeHierarchy(entity))
+    var properties = GetPropertiesFromWholeHierarchy(entity);
+    if(properties.Count>0)
     {
-    #> @"<#=prop.Name #>", @"<#=prop.Name.ToObjCProperty() #>",<#+
-    }  
-
-    #> nil];
+    #>
+    if(_$$$_$$$propertiesNamesMappings==nil) {
     
+        _$$$_$$$propertiesNamesMappings=[[NSDictionary alloc] initWithObjectsAndKeys: <#+
+       
+        foreach (var prop in properties)
+        {
+        #> @"<#=prop.Name #>", @"<#=prop.Name.ToObjCProperty() #>",<#+
+        }  
+
+        #> nil];
+        
+    }
 <#+
+    }
 }
 
 public void GenerateStringsFromParameters(List<OdcmParameter> parameters)
@@ -580,7 +588,7 @@ private string GenerateStringFromORCValue(OdcmType type, string valueName)
     }
     else if(type.GetTypeString() == "NSString")
     {
-        return "[" + valueName + " copy]";
+        return "[NSString stringWithFormat:@\"\\\"%@\\\"\", " + valueName + "]";
     }
     else if(type.GetTypeString() == "NSDate")
     {
@@ -735,7 +743,7 @@ private void GenerateImplementationsForMSOrcInteroperableWithDictionary(OdcmClas
 
 - (instancetype) initWithDictionary: (NSDictionary *) dic {
     if((self = [self init])) {
-    
+        if(dic!=nil) {
 <#+
     foreach (var prop in GetPropertiesFromWholeHierarchy(entity))
     {
@@ -764,15 +772,11 @@ private void GenerateImplementationsForMSOrcInteroperableWithDictionary(OdcmClas
         }
         else
         {
-            this.Write("\t\t" + curPropAccess + " = " + dictionaryAccess + " != nil ? ");
-        
-            this.Write(GenerateORCValueFromDictionaryValue(prop,dictionaryAccess));
-            
-            this.Write(" : " + curPropAccess + ";\n");
+            this.Write("\t\t" + curPropAccess + " = (!" + dictionaryAccess + " || [ " + dictionaryAccess + " isKindOfClass:[NSNull class]] )?" + curPropAccess + ":" + GenerateORCValueFromDictionaryValue(prop,dictionaryAccess) + ";\n");
         }
     }
     #>
-
+    }
     [self.updatedValues removeAllObjects];
     }
     

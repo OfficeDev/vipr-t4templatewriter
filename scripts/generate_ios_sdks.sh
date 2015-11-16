@@ -180,7 +180,6 @@ source do_process_metadata.sh
 # Generate workspace
 #
 ########################################################################
-
 cd "${SDK_OUT}"
 
 ruby -e "$(cat <<HEREDOC
@@ -217,40 +216,6 @@ find "${SDK_OUT}" -name '*.h' -type f -exec sed -i '' 's/^@interface MSOneNotePa
 # Generate podspec
 #
 ########################################################################
-
-cd "${SCRIPT_PATH}"
-
-cat > "${SDK_BASE}/Office365.podspec" <<HEREDOC
-
-
-Pod::Spec.new do |s|
-  s.name         = "Office365"
-  s.version      = "${SDK_VERSION}"
-  s.summary      = "Client libraries for calling Office 365 service APIs from iOS apps."
-  s.description  = <<-DESC
-		   Client libraries for calling Office 365 service APIs from iOS apps.
-		   These libraries are in preview.
-                   DESC
-  s.homepage     = "http://github.com/OfficeDev/Office-365-SDK-for-iOS"
-  s.license      = "Apache License, Version 2.0"
-  s.author             = { "joshgav" => "josh.gavant@microsoft.com" }
-  s.social_media_url   = "http://twitter.com/OpenAtMicrosoft"
-
-  s.platform     = :ios
-  s.ios.deployment_target = "8.0"
-  s.source       = { :git => "https://github.com/OfficeDev/Office-365-SDK-for-iOS.git",
-		             :tag => "v#{s.version}"
-		           }
-  s.exclude_files = "**/Build/**/*"
-  s.requires_arc = true
-  s.dependency "orc"
-  
-  s.source_files = "sdk/**/*.{h,m}"
-
-  # --- Subspecs ------------------------------------------------------------------#
-
-HEREDOC
-
 function processMetadata
 {
 	
@@ -259,31 +224,54 @@ function processMetadata
 
     DeleteAndMoveTo=""
 	EntityContainerName=""
+    CocoaPodsName=""
+    GithubRepoIOS=""
 	
 	source "${ConfigPath}"
 	
-    
     if [ -z "$DeleteAndMoveTo" ]
     then
 
 	MetadataName="$EntityContainerName"	
-	
-	cat >> "${SDK_BASE}/Office365.podspec" <<HEREDOC
+    MetadataNamePlusNS="MS${MetadataName}"
 
-  s.subspec "${MetadataName}" do |subspec|
-    subspec.source_files = "sdk/${MetadataName}/**/*.{h,m}"
-    subspec.public_header_files = "sdk/${MetadataName}/**/*.h"
-    subspec.header_dir = "${MetadataName}"
-  end
+    cd "${SDK_OUT}/${MetadataName}/"
+
+    cat > "${CocoaPodsName}.podspec" <<HEREDOC
+
+
+Pod::Spec.new do |s|
+    s.name         = "${CocoaPodsName}"
+    s.version      = "${SDK_VERSION}"
+    s.summary      = "SUMMARY"
+    s.description  = "DESCRIPTION"
+    s.homepage     = "${GithubRepoIOS}"
+    s.license      = "Apache License, Version 2.0"
+    s.author             = { "joshgav" => "josh.gavant@microsoft.com" }
+    s.social_media_url   = "http://twitter.com/OpenAtMicrosoft"
+
+    s.platform     = :ios
+    s.ios.deployment_target = "8.0"
+    s.source       = { :git => "${GithubRepoIOS}.git",
+                     :tag => "v#{s.version}"
+                   }
+    s.exclude_files = "**/Build/**/*"
+    s.requires_arc = true
+    s.source_files = "Fetchers/*.{h,m}","Model/*.{h,m}","${MetadataNamePlusNS}.h"
+
+    s.dependency "orc"
+    s.dependency 'ADALiOS', '=1.2.4'
+    s.dependency 'LiveSDK', '=5.6.1'
+
+end
 
 HEREDOC
         
     fi
-    
-    
-
 
 }
+
+cd "${SCRIPT_PATH}"
 
 source do_process_metadata.sh
 

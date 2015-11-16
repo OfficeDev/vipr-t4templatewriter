@@ -43,6 +43,14 @@ GenerateClassForwardDeclarationsForFetcherNavProps(entity);
 - (<#=fetcherName#> *)expand:(NSString *)value;
 <#
 		
+foreach(var prop in entity.StreamProperties())
+{
+#>
+@property (strong, nonatomic, readonly, getter=<#=prop.GetGetterString()#>) MSOrcStreamFetcher *<#=prop.GetPropertyString()#>;
+<#    
+}
+        
+        
 foreach(var prop in entity.NavigationProperties())
 {
 	if(prop.IsCollection)
