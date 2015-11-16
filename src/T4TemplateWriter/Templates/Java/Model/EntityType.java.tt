@@ -21,7 +21,7 @@ import com.microsoft.services.orc.core.ODataStream;
 
 
 <#
-    string extends = entity.Base == null ? " extends ODataBaseEntity" : " extends " + entity.Base.Name.Substring(entity.Base.Name.LastIndexOf(".") +1);
+    string extends = entity.Base == null ? " extends ODataBaseEntity" : " extends " + entity.Base.Name.Substring(entity.Base.Name.LastIndexOf(".") +1).ToUpperFirstChar();
 #>
 
 /**

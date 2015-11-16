@@ -8,7 +8,7 @@ CodeWriterJava writer   = (CodeWriterJava) host.CodeWriter;
 
 OdcmClass entity = host.CurrentType.AsOdcmClass();
 TemplateWriterSettings settings = ConfigurationService.Settings;
-var baseOperation = entity.Base == null ? "extends OrcOperations" : "extends " + entity.Base.Name.Substring(entity.Base.Name.LastIndexOf(".") +1) + "CollectionOperations";
+var baseOperation = entity.Base == null ? "extends OrcOperations" : "extends " + entity.Base.Name.Substring(entity.Base.Name.LastIndexOf(".") +1).ToUpperFirstChar() + "CollectionOperations";
 #>
 
 <#=writer.WriteHeader()#>

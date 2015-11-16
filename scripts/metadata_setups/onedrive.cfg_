@@ -1,4 +1,4 @@
 MetadataLink='https://df.api.onedrive.com/v1.0/$metadata'
 PrimaryNamespaceName="oneDrive"
 NamespacePrefix="MS"
-
+AllowShortActions="false"
