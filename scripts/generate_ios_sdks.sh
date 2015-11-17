@@ -207,9 +207,9 @@ HEREDOC)" "${SDK_OUT}/all_services.xcworkspace" "`find . -name '*.xcodeproj' -pr
 #
 ########################################################################
 
-find "${SDK_OUT}" -name '*.h' -type f -exec sed -i '' 's/^@interface MSOneNoteNotesCollectionFetcher : MSOrcCollectionFetcher/@interface MSOneNoteNotesCollectionFetcher : MSOrcMultipartCollectionFetcher/g' {} \;
+find "${SDK_OUT}" -name '*.h' -type f -exec sed -i '' 's/^@interface MSOneNoteApiNotesCollectionFetcher : MSOrcCollectionFetcher/@interface MSOneNoteApiNotesCollectionFetcher : MSOrcMultipartCollectionFetcher/g' {} \;
 
-find "${SDK_OUT}" -name '*.h' -type f -exec sed -i '' 's/^@interface MSOneNotePageCollectionFetcher : MSOrcCollectionFetcher/@interface MSOneNotePageCollectionFetcher : MSOrcMultipartCollectionFetcher/g' {} \;
+find "${SDK_OUT}" -name '*.h' -type f -exec sed -i '' 's/^@interface MSOneNoteApiPageCollectionFetcher : MSOrcCollectionFetcher/@interface MSOneNoteApiPageCollectionFetcher : MSOrcMultipartCollectionFetcher/g' {} \;
 
 
 #
