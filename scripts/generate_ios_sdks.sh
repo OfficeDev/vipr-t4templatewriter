@@ -247,7 +247,7 @@ Pod::Spec.new do |s|
     s.description  = "DESCRIPTION"
     s.homepage     = "${GithubRepoIOS}"
     s.license      = "Apache License, Version 2.0"
-    s.author             = { "joshgav" => "josh.gavant@microsoft.com" }
+    s.author             = { "v-migpe" => "v-migpe@microsoft.com" }
     s.social_media_url   = "http://twitter.com/OpenAtMicrosoft"
 
     s.platform     = :ios
