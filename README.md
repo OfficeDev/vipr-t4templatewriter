@@ -1,3 +1,13 @@
+---
+topic: sample
+products:
+- Office 365
+languages:
+- C#
+extensions:
+  contentType: samples
+  createdDate: 3/26/2015 10:20:03 AM
+---
 [vipr-source-repo]: https://github.com/microsoft/vipr
 
 # VIPR T4 Template Writer
