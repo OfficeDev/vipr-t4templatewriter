@@ -21,7 +21,7 @@ Currently the following target languages are supported by this writer:
 - Java for JVM
 - Objective-C for iOS
 
-# Contents
+## Contents
 - [Prerequisites](#Prerequisites)
 - [Getting started](#Getting-started)
 - [Using Vipr with this writer](#Using-Vipr-with-this-Writer)
